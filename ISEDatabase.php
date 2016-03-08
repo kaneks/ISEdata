@@ -99,6 +99,8 @@ class ISEDatabase Extends Database
             $row1 = $result1->fetch_assoc();
             return json_encode(array("name" => $row1["name"], "surname" => $row1["surname"], "ice" => $row1["ice"], "adme" => $row1["adme"], "aero" => $row1["aero"], "nano" => $row1["nano"]));
         }
+        $action = "wrong token";
+        return json_decode(array("result" => $action));
     }
 
 
