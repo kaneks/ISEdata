@@ -18,11 +18,14 @@ class ISEDatabase Extends Database
             $token = OAuthProvider::generateToken();
             if ($this->checkIfUpdated($row["id"])) {
                 //user has already submitted in before
+                return json_encode(array("status" => "1","token" => $token,"error" => null));
             } else {
                 //user has never submitted
+                return json_encode(array("status" => "2","token" => $token,"error" => null));
             }
         } else {
             //invalid email or password
+            return json_encode(array("status" => "3","token" => null,"error" => "invalid email or password"));
         }
     }
 
@@ -97,7 +100,7 @@ class ISEDatabase Extends Database
             $sql = "SELECT * FROM coursetable WHERE id='" . $row["id"] . "'";
             $result1 = $this->_connection->query($sql);
             $row1 = $result1->fetch_assoc();
-            if($result->num_rows != 0) {
+            if ($result->num_rows != 0) {
                 $action = "success";
                 return json_encode(array("result" => $action, "name" => $row1["name"], "surname" => $row1["surname"], "ice" => $row1["ice"], "adme" => $row1["adme"], "aero" => $row1["aero"], "nano" => $row1["nano"]));
             }
