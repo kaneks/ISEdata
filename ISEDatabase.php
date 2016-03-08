@@ -9,8 +9,11 @@
 class ISEDatabase Extends Database
 {
 
-    public function login($email, $password)
+    public function login($json)
     {
+        $info = json_decode($json);
+        $email = $info->email;
+        $password = $info->password;
         $sql = "SELECT * FROM logintable WHERE Email='" . $email . "' AND Password='" . $password . "'";
         $result = $this->_connection->query($sql);
         if ($result->num_rows == 1) {
