@@ -11,7 +11,7 @@ class ISEDatabase Extends Database
 
     public function login($email, $password)
     {
-        $sql = "SELECT * FROM tableName1 WHERE Email='" . $email . "' AND Password='" . $password . "'";
+        $sql = "SELECT * FROM logintable WHERE Email='" . $email . "' AND Password='" . $password . "'";
         $result = $this->_connection->query($sql);
         if ($result->num_rows == 1) {
             $row = $result->fetch_assoc();
@@ -28,7 +28,7 @@ class ISEDatabase Extends Database
 
     private function checkIfUpdated($id)
     {
-        $sql = "SELECT * FROM tableName2 WHERE id='" . $id . "'";
+        $sql = "SELECT * FROM coursetable WHERE id='" . $id . "'";
         $result = $this->_connection->query($sql);
         $row = $result->fetch_assoc();
         if ($row["ADME"] == 0 && $row["AERO"] == 0 && $row["ICE"] == 0 && $row["NANO"] == 0) {
@@ -41,10 +41,10 @@ class ISEDatabase Extends Database
     {
         $info = json_decode($json);
         if ($this->checkToken($info->token) == true) {
-            $sql1 = "SELECT id FROM tableName1 WHERE token=''" . $info->token . "'";
+            $sql1 = "SELECT id FROM logintable WHERE token=''" . $info->token . "'";
             $result = $this->_connection->query($sql1);
             $row = $result->fetch_assoc();
-            $sql = "UPDATE tableName2 SET ADME='" . $info->adme . "', AERO='" . $info->aero . "', ICE='" . $info->ice . "', NANO='" . $info->nano . "' WHERE id='" . $row["id"] . "'";
+            $sql = "UPDATE coursetable SET ADME='" . $info->adme . "', AERO='" . $info->aero . "', ICE='" . $info->ice . "', NANO='" . $info->nano . "' WHERE id='" . $row["id"] . "'";
             if ($this->_connection->query($sql) == TRUE) {
                 $action = "submit successfully";
                 $this->updateLog($row["id"], $action);
@@ -65,7 +65,7 @@ class ISEDatabase Extends Database
 
     public function checkToken($token)
     {
-        $sql = "SELECT * FROM tableName1 WHERE token='" . $token . "'";
+        $sql = "SELECT * FROM logintable WHERE token='" . $token . "'";
         $result = $this->_connection->query($sql);
         if ($result->num_rows == 1) {
             //legit token
@@ -91,10 +91,10 @@ class ISEDatabase Extends Database
     {
         $info = json_decode($json);
         if ($this->checkToken($info->token) == true) {
-            $sql1 = "SELECT id FROM tableName1 WHERE token=''" . $info->token . "'";
+            $sql1 = "SELECT id FROM logintable WHERE token=''" . $info->token . "'";
             $result = $this->_connection->query($sql1);
             $row = $result->fetch_assoc();
-            $sql = "SELECT * FROM tableName2 WHERE id='" . $row["id"] . "'";
+            $sql = "SELECT * FROM coursetable WHERE id='" . $row["id"] . "'";
             $result1 = $this->_connection->query($sql);
             $row1 = $result1->fetch_assoc();
             if($result->num_rows != 0) {

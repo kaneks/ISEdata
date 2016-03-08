@@ -10,10 +10,10 @@ class Database
 {
     protected $_connection;
     private static $_instance; //The single instance
-    private $_host = "HOSTt";
-    private $_username = "USERNAME";
-    private $_password = "PASSWORd";
-    private $_database = "DATABASE";
+    private $_host = "localhost";
+    private $_username = "root";
+    private $_password = "root";
+    private $_database = "testdatabase";
 
     /*
     Get an instance of the Database
