@@ -97,7 +97,12 @@ class ISEDatabase Extends Database
             $sql = "SELECT * FROM tableName2 WHERE id='" . $row["id"] . "'";
             $result1 = $this->_connection->query($sql);
             $row1 = $result1->fetch_assoc();
-            return json_encode(array("name" => $row1["name"], "surname" => $row1["surname"], "ice" => $row1["ice"], "adme" => $row1["adme"], "aero" => $row1["aero"], "nano" => $row1["nano"]));
+            if($result->num_rows != 0) {
+                $action = "success";
+                return json_encode(array("result" => $action, "name" => $row1["name"], "surname" => $row1["surname"], "ice" => $row1["ice"], "adme" => $row1["adme"], "aero" => $row1["aero"], "nano" => $row1["nano"]));
+            }
+            $action = "data base error";
+            return json_encode(array("result" => $action));
         }
         $action = "wrong token";
         return json_decode(array("result" => $action));
