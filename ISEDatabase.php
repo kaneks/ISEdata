@@ -9,6 +9,11 @@
 class ISEDatabase Extends Database
 {
 
+    public function register($email, $password){
+        $sql = "INSERT INTO logintable (Email, Password) VALUES ('".$email."', '".$password."')";
+        $result = $this->_connection->query($sql);
+    }
+
     public function login($json)
     {
         $info = json_decode($json);

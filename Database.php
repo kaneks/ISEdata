@@ -28,7 +28,7 @@ class Database
     }
 
     // Constructor
-    private function __construct()
+    public function __construct()
     {
         $this->_connection = new mysqli($this->_host, $this->_username,
             $this->_password, $this->_database);
