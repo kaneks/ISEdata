@@ -8,7 +8,7 @@
  */
 class ISEDatabase Extends Database
 {
-    /*register() inserts new email and password into database
+    /*register(email, password) inserts new email and password into database
     note also need to implement security check*/
     public function register($email, $password){
         $sql = "INSERT INTO logintable (Email, Password) VALUES ('".$email."', '".$password."')";
@@ -130,7 +130,11 @@ class ISEDatabase Extends Database
 
 /*
  *getData( TOKEN ) send in token and find the student with matching token
- * and return JSON{ result, name, surname, ice }
+ * and return JSON{ result, name, surname, ice, adme, aero, nano } if success
+ * Else return JSON{ result }
+ * result: 1 = success
+ * result: 2 = database error
+ * result: 3 = wrong token error
  * */
     public function getData($token)
     {
