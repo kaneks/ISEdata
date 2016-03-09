@@ -94,7 +94,7 @@ class ISEDatabase Extends Database
                 //code: 2
                 $action = "2";
                 $this->updateLog($row["id"], $action);
-                echo "Error updating record: ".$this->_connection->error;
+                echo "Error updating record: ".$sql . "<br>" .$this->_connection->error;
                 return json_encode(array("result" => $action));
             }
         } else {
