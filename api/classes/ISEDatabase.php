@@ -81,7 +81,7 @@ class ISEDatabase Extends Database
             $sql1 = "SELECT id FROM logintable WHERE token='" . $token . "'";
             $result = $this->_connection->query($sql1);
             $row = $result->fetch_assoc();
-            $sql = "UPDATE coursetable SET ADME='" . $adme . "', AERO='" . $aero . "', ICE='" . $ice . "', NANO='" . $nano . "' WHERE id='" . $row["id"] . "'";
+            $sql = "UPDATE coursetable SET ADME=" . $adme . ", AERO=" . $aero . ", ICE=" . $ice . ", NANO=" . $nano . " WHERE id=" . $row["id"] . "";
             if ($this->_connection->query($sql) == TRUE) {
                 //submit successfully
                 //code: 1
