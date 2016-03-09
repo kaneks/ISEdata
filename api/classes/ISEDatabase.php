@@ -31,8 +31,9 @@ class ISEDatabase Extends Database
     public function login($email, $password)
     {   //set to lowercase
         $email = strtolower($email);
-        $sql = "SELECT * FROM logintable WHERE Email='" . $email . "' AND Password='" . $password . "'";
-        $result = $this->_connection->query($sql);
+
+        $result=$this->secureLogin($email,$password);
+
         if ($result->num_rows == 1) {
             $p = new OAuthProvider();
             $row = $result->fetch_assoc();
@@ -52,6 +53,7 @@ class ISEDatabase Extends Database
         }
     }
 
+
     //row is array that checks data if student has already selected submitted his choice of majar
     private function checkIfUpdated($id)
     {
@@ -63,6 +65,22 @@ class ISEDatabase Extends Database
         }
         return true;
     }
+
+    //part that handles the secure sql execution
+    private function secureLogin($emailData,$passwordData){
+        $sql = "SELECT * FROM logintable WHERE Email= ? AND Password= ?";
+        if($stmt = $this->_connection->prepare($sql)){
+
+            $stmt->bind_param("ss",$emailData,$passwordData);
+            $stmt->execute();
+            $stmt->bind_result($returnVal);
+            $stmt->fetch();
+            $stmt->close();
+            return $returnVal;
+        }
+    }
+
+
 
     /*
      *update( $token,$adme,$aero,$ice,$nano ) receives JSON from screen major selection page and update the student's choice on the database
