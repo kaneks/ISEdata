@@ -62,7 +62,7 @@ class ISEDatabase Extends Database
     }
 
 /*
- *update( JSON ) receives JSON from screen major selection page and update the student's choice on the database
+ *update( $token,$adme,$aero,$ice,$nano ) receives JSON from screen major selection page and update the student's choice on the database
  * Receives JSON{ADME, AERO, ICE, NANO}
  * returns JSON{ result }
  * data is 1, 2, 3, 4 according to ranking selection
