@@ -21,7 +21,9 @@ class ISEDatabase Extends Database
         $result = $this->_connection->query($sql);
         if ($result->num_rows == 1) {
             $row = $result->fetch_assoc();
-            $token = OAuthProvider::generateToken();
+            $token = OAuthProvider::generateToken($email);
+            $sql1 = "UPDATE logintable SET token='".$token."' WHERE Email='".$email."'";
+            $this->_connection->query($sql1);
             if ($this->checkIfUpdated($row["id"])) {
                 //user has already submitted in before
                 return json_encode(array("status" => "1","token" => $token,"error" => null));
