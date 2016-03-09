@@ -105,7 +105,7 @@ class ISEDatabase Extends Database
             return json_encode(array("result" => 3));
         }
         $sql = "UPDATE coursetable SET ADME='" . $adme . "', AERO='" . $aero . "', ICE='" . $ice . "', NANO='" . $nano . "'WHERE id=" . $row["id"];
-        $result = mysqli_query($this->_connection,$sql1);
+        $result = mysqli_query($this->_connection,$sql);
         if ($result) {
             //submit successfully
             //code: 1
