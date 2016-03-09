@@ -140,7 +140,7 @@ class ISEDatabase Extends Database
         if ($this->_connection->query($sql) == TRUE) {
             echo "New record created successfully";
         } else {
-            echo "Error insert record: ";
+            echo "Error insert record: ".$sql . "<br>" .$this->_connection->error;
         }
     }
 
