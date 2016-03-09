@@ -94,46 +94,36 @@ class ISEDatabase Extends Database
 
     public function update($token, $adme, $aero, $ice, $nano)
     {
-
-        if ($this->checkToken($token) == true) {
-            $sql1 = "SELECT id FROM logintable WHERE token=" . $token;
-            $result = mysqli_query($this->_connection,$sql1);
-            if(mysqli_num_rows($result) > 0){
-                $row = mysqli_fetch_array($result);
-                echo "id is ".$row["id"];
-            } else {
-                echo "Can't find id";
-                return null;
-            }
-            $sql = "UPDATE coursetable SET ADME='" . $adme . "', AERO='" . $aero . "', ICE='" . $ice . "', NANO='" . $nano . "'WHERE id='" . $row["id"] . "'";
-            if ($this->_connection->query($sql) == TRUE) {
-                //submit successfully
-                //code: 1
-                $action = "1";
-                $this->updateLog($row["id"], $action);
-                echo "Record updated successfully";
-                return json_encode(array("result" => $action));
-            } else {
-                //database error can't update
-                //code: 2
-                $action = "2";
-                $this->updateLog($row["id"], $action);
-                echo "Error updating record: ".$sql . "<br>" .$this->_connection->error;
-                return json_encode(array("result" => $action));
-            }
+        $sql1 = "SELECT id FROM logintable WHERE token=" . $token;
+        $result = mysqli_query($this->_connection,$sql1);
+        if(mysqli_num_rows($result) > 0){
+            $row = mysqli_fetch_array($result);
+            #echo "id is ".$row["id"];
         } else {
-            //wrong token can't update
-            //code: 3
-            $action = "3";
-            echo "Wrong token";
-            return json_encode(array("result" => $action));
+            #echo "Can't find id";
+            return json_encode(array("result" => 3));
+        }
+        $sql = "UPDATE coursetable SET ADME='" . $adme . "', AERO='" . $aero . "', ICE='" . $ice . "', NANO='" . $nano . "'WHERE id=" . $row["id"];
+        if ($this->_connection->query($sql) == TRUE) {
+            //submit successfully
+            //code: 1
+            $this->updateLog($row["id"], 1);
+            #echo "Record updated successfully";
+            return json_encode(array("result" => 1));
+        } else {
+            //database error can't update
+            //code: 2
+            $action = "2";
+            $this->updateLog($row["id"], 2);
+            #echo "Error updating record: ".$sql . "<br>" .$this->_connection->error;
+            return json_encode(array("result" => 2));
         }
     }
 
     //checks the token if matches the generated token
     private function checkToken($token)
     {
-        $sql = "SELECT * FROM logintable WHERE token='" . $token . "'";
+        $sql = "SELECT * FROM logintable WHERE token=" . $token;
         if ($this->_connection->query($sql) == TRUE) {
             //legit token
             return true;

@@ -9,6 +9,6 @@ require_once("/classes/Database.php");
 require_once("/classes/ISEDatabase.php");
 
 $db = new ISEDatabase();
-$db->update($_POST["token"],(int) $_POST["adme"],(int) $_POST["aero"],(int) $_POST["ice"],(int) $_POST["nano"]);
+echo $db->update($_POST["token"],(int) $_POST["adme"],(int) $_POST["aero"],(int) $_POST["ice"],(int) $_POST["nano"]);
 
 ?>
