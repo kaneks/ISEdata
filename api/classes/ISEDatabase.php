@@ -96,7 +96,7 @@ class ISEDatabase Extends Database
     {
         $sql1 = "SELECT id FROM logintable WHERE token=" . $token;
         $result = mysqli_query($this->_connection,$sql1);
-        if(mysqli_num_rows($result) > 0){
+        if($result){
             $row = mysqli_fetch_array($result);
             #echo "id is ".$row["id"];
         } else {
@@ -104,7 +104,8 @@ class ISEDatabase Extends Database
             return json_encode(array("result" => 3));
         }
         $sql = "UPDATE coursetable SET ADME='" . $adme . "', AERO='" . $aero . "', ICE='" . $ice . "', NANO='" . $nano . "'WHERE id=" . $row["id"];
-        if ($this->_connection->query($sql) == TRUE) {
+        $result = mysqli_query($this->_connection,$sql1);
+        if ($result) {
             //submit successfully
             //code: 1
             $this->updateLog($row["id"], 1);
@@ -166,7 +167,7 @@ class ISEDatabase Extends Database
             if ($result) {
                 //success code:1
                 $action = "1";
-                return json_encode(array("result" => $action, "adme" => $row1["ADME"], "aero" => $row1["AERO"], "ice" => $row1["ICE"], "nano" => $row1["NANO"]));
+                return json_encode(array("result" => $action, "Title" => $row1["Title"], "FirstName" => $row1["FirstName"], "SurName" => $row1["SurName"], "adme" => $row1["ADME"], "aero" => $row1["AERO"], "ice" => $row1["ICE"], "nano" => $row1["NANO"]));
             }
             //data base error code:2
             $action = "2";
