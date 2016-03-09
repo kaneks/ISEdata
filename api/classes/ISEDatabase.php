@@ -96,11 +96,11 @@ class ISEDatabase Extends Database
     }
 
 
-    function getData($json)
+    function getData($token)
     {
-        $info = json_decode($json);
-        if ($this->checkToken($info->token) == true) {
-            $sql1 = "SELECT id FROM logintable WHERE token=''" . $info->token . "'";
+
+        if ($this->checkToken($token) == true) {
+            $sql1 = "SELECT id FROM logintable WHERE token=''" . $token . "'";
             $result = $this->_connection->query($sql1);
             $row = $result->fetch_assoc();
             $sql = "SELECT * FROM coursetable WHERE id='" . $row["id"] . "'";
