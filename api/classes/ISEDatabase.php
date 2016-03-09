@@ -8,12 +8,24 @@
  */
 class ISEDatabase Extends Database
 {
-
+    /*register() inserts new email and password into database
+    note also need to implement security check*/
     public function register($email, $password){
         $sql = "INSERT INTO logintable (Email, Password) VALUES ('".$email."', '".$password."')";
         $result = $this->_connection->query($sql);
-    }
 
+    }
+    /*login( email, password) is for logging into webserver and generating token for user.
+        function returns JSON{status, token, error}
+        status: 1 = user already submitted in before
+        status: 2 = user has never submitted
+        status: 3 = invalid email or password
+
+        token: null if error
+
+        error: 0 if no error
+                -1 if invalid email or password
+    */
     public function login($email, $password)
     {
 
@@ -26,17 +38,18 @@ class ISEDatabase Extends Database
             $this->_connection->query($sql1);
             if ($this->checkIfUpdated($row["id"])) {
                 //user has already submitted in before
-                return json_encode(array("status" => "1","token" => $token,"error" => null));
+                return json_encode(array("status" => "1","token" => $token,"error" => "0"));
             } else {
                 //user has never submitted
-                return json_encode(array("status" => "2","token" => $token,"error" => null));
+                return json_encode(array("status" => "2","token" => $token,"error" => "0"));
             }
         } else {
             //invalid email or password
-            return json_encode(array("status" => "3","token" => null,"error" => "invalid email or password"));
+            return json_encode(array("status" => "3","token" => null,"error" => "-1"));
         }
     }
 
+    //row is array that checks data if student has already selected submitted his choice of majar
     private function checkIfUpdated($id)
     {
         $sql = "SELECT * FROM coursetable WHERE id='" . $id . "'";
@@ -48,33 +61,50 @@ class ISEDatabase Extends Database
         return true;
     }
 
-    public function update($json)
+/*
+ *update( JSON ) receives JSON from screen major selection page and update the student's choice on the database
+ * Receives JSON{ADME, AERO, ICE, NANO}
+ * returns JSON{ result }
+ * data is 1, 2, 3, 4 according to ranking selection
+ * error: 1 if submit successfully
+ * error: 2 if database error can't update
+ * error: 3 if wrong token can't update
+ * */
+
+    public function update($token,$adme,$aero,$ice,$nano)
     {
-        $info = json_decode($json);
-        if ($this->checkToken($info->token) == true) {
-            $sql1 = "SELECT id FROM logintable WHERE token=''" . $info->token . "'";
+
+        if ($this->checkToken($token) == true) {
+            $sql1 = "SELECT id FROM logintable WHERE token='" . $token . "'";
             $result = $this->_connection->query($sql1);
             $row = $result->fetch_assoc();
-            $sql = "UPDATE coursetable SET ADME='" . $info->adme . "', AERO='" . $info->aero . "', ICE='" . $info->ice . "', NANO='" . $info->nano . "' WHERE id='" . $row["id"] . "'";
+            $sql = "UPDATE coursetable SET ADME='" . $adme . "', AERO='" . $aero . "', ICE='" . $ice . "', NANO='" . $nano . "' WHERE id='" . $row["id"] . "'";
             if ($this->_connection->query($sql) == TRUE) {
-                $action = "submit successfully";
+                //submit successfully
+                //code: 1
+                $action = "1";
                 $this->updateLog($row["id"], $action);
                 echo "Record updated successfully";
                 return json_encode(array("result" => $action));
             } else {
-                $action = "database error can't update";
+                //database error can't update
+                //code: 2
+                $action = "2";
                 $this->updateLog($row["id"], $action);
                 echo "Error updating record: ";
                 return json_encode(array("result" => $action));
             }
         } else {
-            $action = "wrong token can't update";
+            //wrong token can't update
+            //code: 3
+            $action = "3";
             echo "Wrong token";
             return json_encode(array("result" => $action));
         }
     }
 
-    public function checkToken($token)
+    //checks the token if matches the generated token
+    private function checkToken($token)
     {
         $sql = "SELECT * FROM logintable WHERE token='" . $token . "'";
         $result = $this->_connection->query($sql);
@@ -86,7 +116,8 @@ class ISEDatabase Extends Database
         return false;
     }
 
-    public function updateLog($id, $action)
+
+    private function updateLog($id, $action)
     {
         $date = date('Y/m/d H:i:s');
         $sql = "INSERT INTO tableName3 (id, action, time) VALUES ('" . $id . "', '" . $action . "', '" . $date . "')";
@@ -97,10 +128,12 @@ class ISEDatabase Extends Database
         }
     }
 
-
-    function getData($token)
+/*
+ *getData( TOKEN ) send in token and find the student with matching token
+ * and return JSON{ result, name, surname, ice }
+ * */
+    public function getData($token)
     {
-
         if ($this->checkToken($token) == true) {
             $sql1 = "SELECT id FROM logintable WHERE token=''" . $token . "'";
             $result = $this->_connection->query($sql1);
@@ -109,13 +142,16 @@ class ISEDatabase Extends Database
             $result1 = $this->_connection->query($sql);
             $row1 = $result1->fetch_assoc();
             if ($result->num_rows != 0) {
-                $action = "success";
+                //success code:1
+                $action = "1";
                 return json_encode(array("result" => $action, "name" => $row1["name"], "surname" => $row1["surname"], "ice" => $row1["ice"], "adme" => $row1["adme"], "aero" => $row1["aero"], "nano" => $row1["nano"]));
             }
-            $action = "data base error";
+            //data base error code:2
+            $action = "2";
             return json_encode(array("result" => $action));
         }
-        $action = "wrong token";
+        //wrong token error code:3
+        $action = "3";
         return json_decode(array("result" => $action));
     }
 
