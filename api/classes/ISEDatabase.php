@@ -97,8 +97,9 @@ class ISEDatabase Extends Database
 
         if ($this->checkToken($token) == true) {
             $sql1 = "SELECT id FROM logintable WHERE token='" . $token . "'";
-            if($result = $this->_connection->query($sql1) == TRUE){
-                $row = $result->fetch_array();
+            $result = mysqli_query($this->_connection,$sql1);
+            if(mysql_num_rows($result) > 0){
+                $row = mysqli_fetch_array($result);
                 echo "id is ".$row["id"];
             } else {
                 echo "Can't find id";
