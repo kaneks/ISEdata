@@ -150,14 +150,20 @@ class ISEDatabase Extends Database
      * */
     public function getData($token)
     {
-        if ($this->checkToken($token) == true) {
-            $sql1 = "SELECT id FROM logintable WHERE token=''" . $token . "'";
-            $result = $this->_connection->query($sql1);
-            $row = $result->fetch_assoc();
+
+            $sql1 = "SELECT id FROM logintable WHERE token=" . $token;
+            $result = mysqli_query($this->_connection,$sql1);
+            if(mysqli_num_rows($result) > 0){
+                $row = mysqli_fetch_array($result);
+                #echo "id is ".$row["id"];
+            } else {
+                #echo "Can't find id";
+                return json_encode(array("result" => 3));
+            }
             $sql = "SELECT * FROM coursetable WHERE id='" . $row["id"] . "'";
-            $result1 = $this->_connection->query($sql);
-            $row1 = $result1->fetch_assoc();
-            if ($result->num_rows != 0) {
+            $result1 = mysqli_query($this->_connection,$sql);
+            $row1 = mysqli_fetch_array($result1);
+            if (mysqli_num_rows($result1) > 0) {
                 //success code:1
                 $action = "1";
                 return json_encode(array("result" => $action, "name" => $row1["name"], "surname" => $row1["surname"], "ice" => $row1["ice"], "adme" => $row1["adme"], "aero" => $row1["aero"], "nano" => $row1["nano"]));
@@ -165,10 +171,7 @@ class ISEDatabase Extends Database
             //data base error code:2
             $action = "2";
             return json_encode(array("result" => $action));
-        }
-        //wrong token error code:3
-        $action = "3";
-        return json_decode(array("result" => $action));
+
     }
 
 
