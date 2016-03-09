@@ -136,7 +136,7 @@ class ISEDatabase Extends Database
     private function updateLog($id, $action)
     {
         $date = date('Y/m/d H:i:s');
-        $sql = "INSERT INTO tableName3 (id, action, time) VALUES ('" . $id . "', '" . $action . "', '" . $date . "')";
+        $sql = "INSERT INTO log (id, action, time) VALUES ('" . $id . "', '" . $action . "', '" . $date . "')";
         if ($this->_connection->query($sql) == TRUE) {
             echo "New record created successfully";
         } else {
@@ -153,20 +153,20 @@ class ISEDatabase Extends Database
 
             $sql1 = "SELECT id FROM logintable WHERE token=" . $token;
             $result = mysqli_query($this->_connection,$sql1);
-            if(mysqli_num_rows($result) > 0){
+            if($result){
                 $row = mysqli_fetch_array($result);
                 #echo "id is ".$row["id"];
             } else {
                 #echo "Can't find id";
                 return json_encode(array("result" => 3));
             }
-            $sql = "SELECT * FROM coursetable WHERE id='" . $row["id"] . "'";
+            $sql = "SELECT * FROM coursetable WHERE id=" . $row["id"];
             $result1 = mysqli_query($this->_connection,$sql);
             $row1 = mysqli_fetch_array($result1);
-            if (mysqli_num_rows($result1) > 0) {
+            if ($result) {
                 //success code:1
                 $action = "1";
-                return json_encode(array("result" => $action, "name" => $row1["name"], "surname" => $row1["surname"], "ice" => $row1["ice"], "adme" => $row1["adme"], "aero" => $row1["aero"], "nano" => $row1["nano"]));
+                return json_encode(array("result" => $action, "adme" => $row1["ADME"], "aero" => $row1["AERO"], "ice" => $row1["ICE"], "nano" => $row1["NANO"]));
             }
             //data base error code:2
             $action = "2";

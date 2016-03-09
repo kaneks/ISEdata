@@ -9,6 +9,6 @@ require_once("/classes/Database.php");
 require_once("/classes/ISEDatabase.php");
 
 $db = new ISEDatabase();
-$db->getData($_POST["token"]);
+echo $db->getData($_POST["token"]);
 
 ?>
