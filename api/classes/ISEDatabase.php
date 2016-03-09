@@ -79,8 +79,12 @@ class ISEDatabase Extends Database
 
         if ($this->checkToken($token) == true) {
             $sql1 = "SELECT id FROM logintable WHERE token='" . $token . "'";
-            $result = $this->_connection->query($sql1);
-            $row = $result->fetch_assoc();
+            if($result = $this->_connection->query($sql1) == TRUE){
+                $row = $result->fetch_assoc();
+            } else {
+                echo "Can't find id";
+                return;
+            }
             $sql = "UPDATE coursetable SET ADME='" . $adme . "', AERO='" . $aero . "', ICE='" . $ice . "', NANO='" . $nano . "'WHERE id='" . $row["id"] . "'";
             if ($this->_connection->query($sql) == TRUE) {
                 //submit successfully
