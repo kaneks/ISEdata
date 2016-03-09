@@ -139,10 +139,11 @@ class ISEDatabase Extends Database
     {
         $date = date('Y/m/d H:i:s');
         $sql = "INSERT INTO log (id, action, time) VALUES ('" . $id . "', '" . $action . "', '" . $date . "')";
-        if ($this->_connection->query($sql) == TRUE) {
-            echo "New record created successfully";
+        $result = mysqli_query($this->_connection,$sql);
+        if ($result) {
+            #echo "New record created successfully";
         } else {
-            echo "Error insert record: ".$sql . "<br>" .$this->_connection->error;
+            #echo "Error insert record: ".$sql . "<br>" .$this->_connection->error;
         }
     }
 
