@@ -35,8 +35,9 @@ class ISEDatabase Extends Database
         $result=$this->secureLogin($email,$password);
 
         if ($result->num_rows == 1) {
+          
+            $row = mysqli_fetch_array($result);
             $p = new OAuthProvider();
-            $row = $result->fetch_assoc();
             $token = $p->generateToken(32);
             $sql1 = "UPDATE logintable SET token='" . $token . "' WHERE Email='" . $email . "'";
             $this->_connection->query($sql1);
