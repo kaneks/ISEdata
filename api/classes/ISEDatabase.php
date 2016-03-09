@@ -110,8 +110,7 @@ class ISEDatabase Extends Database
     private function checkToken($token)
     {
         $sql = "SELECT * FROM logintable WHERE token='" . $token . "'";
-        $result = $this->_connection->query($sql);
-        if ($result->num_rows == 1) {
+        if ($this->_connection->query($sql) == TRUE) {
             //legit token
             return true;
         }
