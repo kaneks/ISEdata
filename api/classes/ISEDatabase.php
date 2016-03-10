@@ -74,7 +74,7 @@ class ISEDatabase Extends Database
 
     //part that handles the secure sql execution
     private function secureLogin($emailData,$passwordData){
-        $sql = "SELECT * FROM logintable WHERE Email=? AND Password=?";
+        $sql = "SELECT id FROM logintable WHERE Email=? AND Password=?";
         if($stmt = $this->_connection->prepare($sql)){
             $stmt->bind_param("ss",$emailData,$passwordData);
             $stmt->execute();
