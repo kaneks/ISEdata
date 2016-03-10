@@ -99,7 +99,8 @@ class ISEDatabase Extends Database
 
     public function update($email, $token, $adme, $aero, $ice, $nano)
     {
-        $sql = "SELECT id FROM logintable WHERE token=" . $token ." AND Email=" . $email;
+        $sql = "SELECT id FROM logintable WHERE token=" . $token ." AND Email='" . $email . "'";
+        echo $sql;
         $result = mysqli_query($this->_connection,$sql);
         if($result){
             $row = mysqli_fetch_array($result);
@@ -114,25 +115,26 @@ class ISEDatabase Extends Database
                 //log unsuccessful
                 //code: 1, 1
                 return json_encode(array("result" => 1, "log_result" => 1));
-            }
-        }
-        $sql = "UPDATE coursetable SET ADME='" . $adme . "', AERO='" . $aero . "', ICE='" . $ice . "', NANO='" . $nano . "'WHERE id=" . $row["id"];
-        $result = mysqli_query($this->_connection,$sql);
-        if ($result) {
-            $sql = "SELECT * FROM coursetable WHERE id=" . $row["id"];
-            $result = mysqli_query($this->_connection, $sql);
-            if ($result) {
-                $row = mysqli_fetch_array($result);
-                if ($this->updateLog($row["id"], $row["FirstName"] . " " . $row["SurName"] . " updated record.")) {
-                    //submit successful
-                    //log successful
-                    //code: 0, 0
-                    return json_encode(array("result" => 0, "log_result" => 0));
+            } else {
+                $sql = "UPDATE coursetable SET ADME=" . $adme . ", AERO=" . $aero . ", ICE=" . $ice . ", NANO=" . $nano . " WHERE id=" . $row["id"];
+                $result = mysqli_query($this->_connection,$sql);
+                if ($result) {
+                    $sql = "SELECT * FROM coursetable WHERE id=" . $row["id"];
+                    $result = mysqli_query($this->_connection, $sql);
+                    if ($result) {
+                        $row = mysqli_fetch_array($result);
+                        if ($this->updateLog($row["id"], $row["FirstName"] . " " . $row["SurName"] . " updated record.")) {
+                            //submit successful
+                            //log successful
+                            //code: 0, 0
+                            return json_encode(array("result" => 0, "log_result" => 0));
+                        }
+                        //submit successful
+                        //log unsuccessful
+                        //code: 0, 1
+                        return json_encode(array("result" => 0, "log_result" => 1));
+                    }
                 }
-                //submit successful
-                //log unsuccessful
-                //code: 0, 1
-                return json_encode(array("result" => 0, "log_result" => 1));
             }
         }
         //database error can't update
