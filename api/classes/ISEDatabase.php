@@ -175,7 +175,7 @@ class ISEDatabase Extends Database
                 //success code:1
                 $action = "1";
                 $this->updateLog($row["id"], "getData successfully");
-                return json_encode(array("result" => $action, "Title" => $row1["Title"], "FirstName" => $row1["FirstName"], "SurName" => $row1["SurName"], "adme" => $row1["ADME"], "aero" => $row1["AERO"], "ice" => $row1["ICE"], "nano" => $row1["NANO"]));
+                return json_encode(array("result" => $action,"RegisID"=> $row1["id"], "Title" => $row1["Title"], "FirstName" => $row1["FirstName"], "SurName" => $row1["SurName"], "adme" => $row1["ADME"], "aero" => $row1["AERO"], "ice" => $row1["ICE"], "nano" => $row1["NANO"]));
             }
             //data base error code:2
             $action = "2";
