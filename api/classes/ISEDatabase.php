@@ -35,20 +35,24 @@ class ISEDatabase Extends Database
         $result=$this->secureLogin($email,$password);
 
         if ($result->num_rows == 1) {
-            $p = new OAuthProvider();
             $row = mysqli_fetch_array($result);
-            $token = $p->generateToken(32);
+            //$p = new OAuthProvider();
+            //$token = $p->generateToken(32);
+            $token = uniqid('',true);
             $sql1 = "UPDATE logintable SET token='" . $token . "' WHERE Email='" . $email . "'";
             $this->_connection->query($sql1);
             if ($this->checkIfUpdated($row["id"])) {
                 //user has already submitted in before
+                $this->updateLog($row["id"], "login success");
                 return json_encode(array("status" => "1", "token" => $token, "error" => "0"));
             } else {
                 //user has never submitted
+                $this->updateLog($row["id"], "login success");
                 return json_encode(array("status" => "2", "token" => $token, "error" => "0"));
             }
         } else {
             //invalid email or password
+            $this->updateLog("", "invalid email or password");
             return json_encode(array("status" => "3", "token" => null, "error" => "-1"));
         }
     }
