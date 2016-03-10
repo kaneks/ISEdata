@@ -32,22 +32,22 @@ class ISEDatabase Extends Database
     {   //set to lowercase
         $email = strtolower($email);
 
-        $result=$this->secureLogin($email,$password);
+        $resultID=$this->secureLogin($email,$password);
 
-        if ($result) {
-            $row = mysqli_fetch_array($result);
+        if ($resultID) {
+            //$row = mysqli_fetch_array($result);
             //$p = new OAuthProvider();
             //$token = $p->generateToken(32);
             $token = uniqid('',true);
             $sql1 = "UPDATE logintable SET token='" . $token . "' WHERE Email='" . $email . "'";
             $this->_connection->query($sql1);
-            if ($this->checkIfUpdated($row["id"])) {
+            if ($this->checkIfUpdated($resultID)) {
                 //user has already submitted in before
-                $this->updateLog($row["id"], "login success");
+                $this->updateLog($resultID, "login success");
                 return json_encode(array("status" => "1", "token" => $token, "error" => "0"));
             } else {
                 //user has never submitted
-                $this->updateLog($row["id"], "login success");
+                $this->updateLog($resultID, "login success");
                 return json_encode(array("status" => "2", "token" => $token, "error" => "0"));
             }
         } else {
@@ -82,9 +82,11 @@ class ISEDatabase Extends Database
             $stmt->bind_result($returnVal);
             $stmt->fetch();
             $stmt->close();
+
             return $returnVal;
         }
     }
+
 
 
 
