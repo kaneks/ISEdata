@@ -142,7 +142,7 @@ class ISEDatabase Extends Database
     }
 
     private function secureConnect($tokenData,$emailData){
-        $sql = "SELECT id FROM logintable WHERE token=" . $tokenData ." AND Email='" . $emailData . "'";
+        $sql = "SELECT id FROM logintable WHERE token=? AND Email=?";
         if($stmt = $this->_connection->prepare($sql)){
             $stmt->bind_param("ss",$tokenData,$emailData);
             $stmt->execute();
