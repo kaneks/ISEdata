@@ -19,9 +19,9 @@ class ISEDatabase Extends Database
 
     /*login( email, password) is for logging into webserver and generating token for user.
         function returns JSON{status, token, error}
-        status: 1 = user already submitted in before
-        status: 2 = user has never submitted
-        status: 3 = invalid email or password
+        status: 0 = user already submitted in before
+        status: 1 = user has never submitted
+        status: 2 = invalid email or password
 
         token: null if error
 
@@ -78,6 +78,7 @@ class ISEDatabase Extends Database
         if($stmt = $this->_connection->prepare($sql)){
             $stmt->bind_param("ss",$emailData,$passwordData);
             $stmt->execute();
+            $stmt->store_result();
             $stmt->bind_result($returnVal);
             $stmt->fetch();
             $stmt->close();
