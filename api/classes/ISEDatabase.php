@@ -35,7 +35,7 @@ class ISEDatabase Extends Database
         $resultID=$this->secureLogin($email,$password);
 
         if ($resultID) {
-            //$row = mysqli_fetch_array($result);
+           // $row = mysqli_fetch_array($result);
             //$p = new OAuthProvider();
             //$token = $p->generateToken(32);
             $token = uniqid('',true);
@@ -82,11 +82,9 @@ class ISEDatabase Extends Database
             $stmt->bind_result($returnVal);
             $stmt->fetch();
             $stmt->close();
-
             return $returnVal;
         }
     }
-
 
 
 
@@ -102,9 +100,7 @@ class ISEDatabase Extends Database
 
     public function update($email, $token, $adme, $aero, $ice, $nano)
     {
-        $sql = "SELECT id FROM logintable WHERE token=" . $token ." AND Email='" . $email . "'";
-        echo $sql;
-        $result = mysqli_query($this->_connection,$sql);
+        $result=$this->secureConnect($token,$email);
         if($result){
             $row = mysqli_fetch_array($result);
             if(mysqli_num_rows($result) != 1) {
@@ -119,8 +115,7 @@ class ISEDatabase Extends Database
                 //code: 1, 1
                 return json_encode(array("result" => 1, "log_result" => 1));
             } else {
-                $sql = "UPDATE coursetable SET ADME=" . $adme . ", AERO=" . $aero . ", ICE=" . $ice . ", NANO=" . $nano . " WHERE id=" . $row["id"];
-                $result = mysqli_query($this->_connection,$sql);
+                $result = $this->secureUpdate($adme,$aero,$ice,$nano,$row["id"]);
                 if ($result) {
                     $sql = "SELECT * FROM coursetable WHERE id=" . $row["id"];
                     $result = mysqli_query($this->_connection, $sql);
@@ -144,6 +139,33 @@ class ISEDatabase Extends Database
         //no log
         //code: 2
         return json_encode(array("result" => 2, "log_result" => 0));
+    }
+
+    private function secureConnect($tokenData,$emailData){
+        $sql = "SELECT id FROM logintable WHERE token=" . $tokenData ." AND Email='" . $emailData . "'";
+        if($stmt = $this->_connection->prepare($sql)){
+            $stmt->bind_param("ss",$tokenData,$emailData);
+            $stmt->execute();
+            $stmt->store_result();
+            $stmt->bind_result($returnVal);
+            $stmt->fetch();
+            $stmt->close();
+            return array("id"=>$returnVal);
+        }
+    }
+
+    private function secureUpdate($adme, $aero, $ice, $nano,$id){
+        $sql = "UPDATE coursetable SET ADME=?, AERO=?, ICE=?, NANO=? WHERE id=?";
+        if($stmt = $this->_connection->prepare($sql)){
+            $stmt->bind_param("ssssi",$adme,$aero,$ice,$nano,$id);
+            if($stmt->execute()){
+                return true;
+            }
+            else{
+                return false;
+            }
+
+        }
     }
 
     //checks the token if matches the generated token
