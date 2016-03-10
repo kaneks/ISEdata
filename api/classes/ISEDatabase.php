@@ -100,8 +100,8 @@ class ISEDatabase Extends Database
             $row = mysqli_fetch_array($result);
             #echo "id is ".$row["id"];
         } else {
-            $this->updateLog("", "wrong token can't find id");
             #echo "Can't find id";
+            $this->updateLog("", "wrong token can't find id");
             return json_encode(array("result" => 3));
         }
         $sql = "UPDATE coursetable SET ADME='" . $adme . "', AERO='" . $aero . "', ICE='" . $ice . "', NANO='" . $nano . "'WHERE id=" . $row["id"];
@@ -109,14 +109,14 @@ class ISEDatabase Extends Database
         if ($result) {
             //submit successfully
             //code: 1
-            $this->updateLog($row["id"], "update successfully");
+            $this->updateLog($row["id"], "Record updated successfully");
             #echo "Record updated successfully";
             return json_encode(array("result" => 1));
         } else {
             //database error can't update
             //code: 2
             $action = "2";
-            $this->updateLog($row["id"], "database error can't update");
+            $this->updateLog($row["id"], "Error updating record");
             #echo "Error updating record: ".$sql . "<br>" .$this->_connection->error;
             return json_encode(array("result" => 2));
         }
@@ -175,7 +175,7 @@ class ISEDatabase Extends Database
             }
             //data base error code:2
             $action = "2";
-        $this->updateLog($row["id"], "database error can't getData");
+        $this->updateLog($row["id"], "error can't getData");
             return json_encode(array("result" => $action));
 
     }
