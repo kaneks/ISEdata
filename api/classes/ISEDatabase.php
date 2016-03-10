@@ -171,31 +171,29 @@ class ISEDatabase Extends Database
      * */
     public function getData($token)
     {
-
             $sql1 = "SELECT id FROM logintable WHERE token=" . $token;
             $result = mysqli_query($this->_connection,$sql1);
             if($result){
                 $row = mysqli_fetch_array($result);
-                #echo "id is ".$row["id"];
-            } else {
-                #echo "Can't find id";
-                $this->updateLog("", "wrong token can't find id");
-                return json_encode(array("result" => 3));
+                if(mysqli_num_rows($result) != 1) {
+                    if($this->updateLog($row["id"], "can't find token")){
+                        return json_encode(array("result" => 1, "log_result" => 0));
+                    }
+                    return json_encode(array("result" => 1, "log_result" => 1));
+                } else {
+                    $sql = "SELECT * FROM coursetable WHERE id=" . $row["id"];
+                    $result = mysqli_query($this->_connection,$sql);
+                    if ($result) {
+                        $row1 = mysqli_fetch_array($result);
+                        if($this->updateLog($row["id"], "getData called for ".$row["FirstName"]." ".$row["LastName"].".")){
+                            return json_encode(array("result" => 0, "log_result" => 0, "id" => $row1["id"], "Title" => $row1["Title"], "FirstName" => $row1["FirstName"], "SurName" => $row1["SurName"], "adme" => $row1["ADME"], "aero" => $row1["AERO"], "ice" => $row1["ICE"], "nano" => $row1["NANO"]));
+                        }
+                        return json_encode(array("result" => 0, "log_result" => 1, "id" => $row1["id"], "Title" => $row1["Title"], "FirstName" => $row1["FirstName"], "SurName" => $row1["SurName"], "adme" => $row1["ADME"], "aero" => $row1["AERO"], "ice" => $row1["ICE"], "nano" => $row1["NANO"]));
+                    }
+                }
             }
-            $sql = "SELECT * FROM coursetable WHERE id=" . $row["id"];
-            $result1 = mysqli_query($this->_connection,$sql);
-            $row1 = mysqli_fetch_array($result1);
-            if ($result) {
-                //success code:1
-                $action = "1";
-                $this->updateLog($row["id"], "getData successfully");
-                return json_encode(array("result" => $action,"RegisID"=> $row1["id"], "Title" => $row1["Title"], "FirstName" => $row1["FirstName"], "SurName" => $row1["SurName"], "adme" => $row1["ADME"], "aero" => $row1["AERO"], "ice" => $row1["ICE"], "nano" => $row1["NANO"]));
-            }
-            //data base error code:2
-            $action = "2";
-        $this->updateLog($row["id"], "error can't getData");
-            return json_encode(array("result" => $action));
-
+        $this->updateLog("", "wrong token can't find id");
+        return json_encode(array("result" => 2, "log_result" => 0));
     }
 
 
