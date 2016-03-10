@@ -35,9 +35,8 @@ class ISEDatabase Extends Database
         $result=$this->secureLogin($email,$password);
 
         if ($result->num_rows == 1) {
-          
-            $row = mysqli_fetch_array($result);
             $p = new OAuthProvider();
+            $row = mysqli_fetch_array($result);
             $token = $p->generateToken(32);
             $sql1 = "UPDATE logintable SET token='" . $token . "' WHERE Email='" . $email . "'";
             $this->_connection->query($sql1);
@@ -101,6 +100,7 @@ class ISEDatabase Extends Database
             $row = mysqli_fetch_array($result);
             #echo "id is ".$row["id"];
         } else {
+            $this->updateLog("", "wrong token can't find id");
             #echo "Can't find id";
             return json_encode(array("result" => 3));
         }
@@ -109,14 +109,14 @@ class ISEDatabase Extends Database
         if ($result) {
             //submit successfully
             //code: 1
-            $this->updateLog($row["id"], 1);
+            $this->updateLog($row["id"], "update successfully");
             #echo "Record updated successfully";
             return json_encode(array("result" => 1));
         } else {
             //database error can't update
             //code: 2
             $action = "2";
-            $this->updateLog($row["id"], 2);
+            $this->updateLog($row["id"], "database error can't update");
             #echo "Error updating record: ".$sql . "<br>" .$this->_connection->error;
             return json_encode(array("result" => 2));
         }
@@ -160,6 +160,7 @@ class ISEDatabase Extends Database
                 #echo "id is ".$row["id"];
             } else {
                 #echo "Can't find id";
+                $this->updateLog("", "wrong token can't find id");
                 return json_encode(array("result" => 3));
             }
             $sql = "SELECT * FROM coursetable WHERE id=" . $row["id"];
@@ -168,10 +169,12 @@ class ISEDatabase Extends Database
             if ($result) {
                 //success code:1
                 $action = "1";
+                $this->updateLog($row["id"], "getData successfully");
                 return json_encode(array("result" => $action, "Title" => $row1["Title"], "FirstName" => $row1["FirstName"], "SurName" => $row1["SurName"], "adme" => $row1["ADME"], "aero" => $row1["AERO"], "ice" => $row1["ICE"], "nano" => $row1["NANO"]));
             }
             //data base error code:2
             $action = "2";
+        $this->updateLog($row["id"], "database error can't getData");
             return json_encode(array("result" => $action));
 
     }
