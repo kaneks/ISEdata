@@ -34,7 +34,7 @@ class ISEDatabase Extends Database
 
         $result=$this->secureLogin($email,$password);
 
-        if ($result->num_rows == 1) {
+        if ($result) {
             $row = mysqli_fetch_array($result);
             //$p = new OAuthProvider();
             //$token = $p->generateToken(32);
@@ -62,19 +62,20 @@ class ISEDatabase Extends Database
     private function checkIfUpdated($id)
     {
         $sql = "SELECT * FROM coursetable WHERE id='" . $id . "'";
-        $result = $this->_connection->query($sql);
-        $row = $result->fetch_assoc();
-        if ($row["ADME"] == 0 && $row["AERO"] == 0 && $row["ICE"] == 0 && $row["NANO"] == 0) {
-            return false;
+        $result = mysqli_query($this->_connection, $sql);
+        if($result) {
+            $row = mysqli_fetch_array($result);
+            if ($row["ADME"] != 0 || $row["AERO"] != 0 || $row["ICE"] != 0 || $row["NANO"] != 0) {
+                return true;
+            }
         }
-        return true;
+        return false;
     }
 
     //part that handles the secure sql execution
     private function secureLogin($emailData,$passwordData){
-        $sql = "SELECT * FROM logintable WHERE Email= ? AND Password= ?";
+        $sql = "SELECT * FROM logintable WHERE Email=? AND Password=?";
         if($stmt = $this->_connection->prepare($sql)){
-
             $stmt->bind_param("ss",$emailData,$passwordData);
             $stmt->execute();
             $stmt->bind_result($returnVal);
@@ -91,39 +92,53 @@ class ISEDatabase Extends Database
      * Receives JSON{ADME, AERO, ICE, NANO}
      * returns JSON{ result }
      * data is 1, 2, 3, 4 according to ranking selection
-     * error: 1 if submit successfully
-     * error: 2 if database error can't update
-     * error: 3 if wrong token can't update
+     * error: 0 if submit successfully
+     * error: 1 if database error can't update
+     * error: 2 if wrong token can't update
      * */
 
-    public function update($token, $adme, $aero, $ice, $nano)
+    public function update($email, $token, $adme, $aero, $ice, $nano)
     {
-        $sql1 = "SELECT id FROM logintable WHERE token=" . $token;
-        $result = mysqli_query($this->_connection,$sql1);
+        $sql = "SELECT id FROM logintable WHERE token=" . $token ." AND Email=" . $email;
+        $result = mysqli_query($this->_connection,$sql);
         if($result){
             $row = mysqli_fetch_array($result);
-            #echo "id is ".$row["id"];
-        } else {
-            #echo "Can't find id";
-            $this->updateLog("", "wrong token can't find id");
-            return json_encode(array("result" => 3));
+            if(mysqli_num_rows($result) != 1) {
+                if($this->updateLog("", "wrong token can't find id")){
+                    //cant find id with matching token and email
+                    //log successful
+                    //code: 1, 0
+                    return json_encode(array("result" => 1, "log_result" => 0));
+                }
+                //cant find id with matching token and email
+                //log unsuccessful
+                //code: 1, 1
+                return json_encode(array("result" => 1, "log_result" => 1));
+            }
         }
         $sql = "UPDATE coursetable SET ADME='" . $adme . "', AERO='" . $aero . "', ICE='" . $ice . "', NANO='" . $nano . "'WHERE id=" . $row["id"];
         $result = mysqli_query($this->_connection,$sql);
         if ($result) {
-            //submit successfully
-            //code: 1
-            $this->updateLog($row["id"], "Record updated successfully");
-            #echo "Record updated successfully";
-            return json_encode(array("result" => 1));
-        } else {
-            //database error can't update
-            //code: 2
-            $action = "2";
-            $this->updateLog($row["id"], "Error updating record");
-            #echo "Error updating record: ".$sql . "<br>" .$this->_connection->error;
-            return json_encode(array("result" => 2));
+            $sql = "SELECT * FROM coursetable WHERE id=" . $row["id"];
+            $result = mysqli_query($this->_connection, $sql);
+            if ($result) {
+                $row = mysqli_fetch_array($result);
+                if ($this->updateLog($row["id"], $row["FirstName"] . " " . $row["SurName"] . " updated record.")) {
+                    //submit successful
+                    //log successful
+                    //code: 0, 0
+                    return json_encode(array("result" => 0, "log_result" => 0));
+                }
+                //submit successful
+                //log unsuccessful
+                //code: 0, 1
+                return json_encode(array("result" => 0, "log_result" => 1));
+            }
         }
+        //database error can't update
+        //no log
+        //code: 2
+        return json_encode(array("result" => 2, "log_result" => 0));
     }
 
     //checks the token if matches the generated token
@@ -144,11 +159,7 @@ class ISEDatabase Extends Database
         $date = date('Y/m/d H:i:s');
         $sql = "INSERT INTO log (id, action, time) VALUES ('" . $id . "', '" . $action . "', '" . $date . "')";
         $result = mysqli_query($this->_connection,$sql);
-        if ($result) {
-            #echo "New record created successfully";
-        } else {
-            #echo "Error insert record: ".$sql . "<br>" .$this->_connection->error;
-        }
+        return $result;
     }
 
     /*
