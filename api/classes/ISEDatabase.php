@@ -116,6 +116,7 @@ class ISEDatabase Extends Database
         if ($stmt = $this->_connection->prepare($sql)) {
             $stmt->bind_param("ss", $tokenData, $emailData);
             $isOk=$stmt->execute();
+            $stmt->close();
             //part that will be modify later on once mickey arives
             return $isOk;
         }
