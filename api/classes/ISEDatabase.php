@@ -31,35 +31,53 @@ class ISEDatabase Extends Database
     public function login($email, $password)
     {   //set to lowercase
         $email = strtolower($email);
-
-        $result = $this->secureLogin($email, $password);
-
-        if ($result) {
-            // $row = mysqli_fetch_array($result);
+        $sql = "SELECT * FROM logintable WHERE Email='" . $email . "' AND Password='" . $password . "'";
+        //$result = $this->secureLogin($email, $password);
+        $result = mysqli_query($this->_connection, $sql);
+        if (mysqli_num_rows($result) == 1) {
+            $row = mysqli_fetch_array($result);
+            $id = $row["id"];
             //$p = new OAuthProvider();
             //$token = $p->generateToken(32);
             $token = uniqid('', true);
-            $sql1 = "UPDATE logintable SET token='" . $token . "' WHERE Email='" . $email . "'";
-            $this->_connection->query($sql1);
-
-            if ($this->checkIfUpdated($result["id"])) {
-                //user has already submitted in before
-                $this->updateLog($result["id"], "login success");
-
-                return json_encode(array("status" => "0", "log_result" => "0", "token" => $token, "regisNum" => $result["regisNum"]
-                , "title" => $result["title"], "name" => $result["name"], "surname" => $result["surname"]
-                , "adme" => $result["adme"], "aero" => $result["aero"], "ice" => $result["ice"], "nano" => $result["nano"]));
-            } else {
-                //user has never submitted
-                $this->updateLog($result["id"], "login success");
-                return json_encode(array("status" => "1", "log_result" => "0", "token" => $token, "regisNum" => $result["regisNum"]
-                , "title" => $result["title"], "name" => $result["name"], "surname" => $result["surname"]
-                , "adme" => $result["adme"], "aero" => $result["aero"], "ice" => $result["ice"], "nano" => $result["nano"]));
+            $sql = "UPDATE logintable SET token='" . $token . "' WHERE Email='" . $email . "'";
+            $result = mysqli_query($this->_connection, $sql);
+            if ($result) {
+                $sql = "SELECT * FROM coursetable WHERE id=" . $id;
+                $result = mysqli_query($this->_connection, $sql);
+                if (mysqli_num_rows($result) == 1) {
+                    $row = mysqli_fetch_array($result);
+                    if ($this->checkIfUpdated($row["id"])) {
+                        //user has already submitted in before
+                        if ($this->updateLog($row["id"], "login success, user has logged in before")) {
+                            return json_encode(array("status" => "0", "log_result" => "0", "token" => $token, "regisNum" => $row["id"]
+                            , "title" => $row["Title"], "name" => $row["FirstName"], "surname" => $row["SurName"]
+                            , "adme" => $row["ADME"], "aero" => $row["AERO"], "ice" => $row["ICE"], "nano" => $row["NANO"]));
+                        }
+                        return json_encode(array("status" => "0", "log_result" => "1", "token" => $token, "regisNum" => $row["id"]
+                        , "title" => $row["Title"], "name" => $row["FirstName"], "surname" => $row["SurName"]
+                        , "adme" => $row["ADME"], "aero" => $row["AERO"], "ice" => $row["ICE"], "nano" => $row["NANO"]));
+                    } else {
+                        //user has never submitted
+                        if ($this->updateLog($row["id"], "login success, first time")) {
+                            return json_encode(array("status" => "1", "log_result" => "0", "token" => $token, "regisNum" => $row["id"]
+                            , "title" => $row["Title"], "name" => $row["FirstName"], "surname" => $row["SurName"]
+                            , "adme" => $row["ADME"], "aero" => $row["AERO"], "ice" => $row["ICE"], "nano" => $row["NANO"]));
+                        }
+                        return json_encode(array("status" => "1", "log_result" => "1", "token" => $token, "regisNum" => $row["id"]
+                        , "title" => $row["Title"], "name" => $row["FirstName"], "surname" => $row["SurName"]
+                        , "adme" => $row["ADME"], "aero" => $row["AERO"], "ice" => $row["ICE"], "nano" => $row["NANO"]));
+                    }
+                }
             }
         } else {
             //invalid email or password
-            $this->updateLog("", "invalid email or password");
-            return json_encode(array("status" => "2", "log_result" => "-1", "token" => null, "regisNum" => null
+            if($this->updateLog("", "user entered invalid email or password :" . $email . " " . $password)){
+                return json_encode(array("status" => "2", "log_result" => "0", "token" => null, "regisNum" => null
+                , "title" => null, "name" => null, "surname" => null
+                , "adme" => null, "aero" => null, "ice" => null, "nano" => null));
+            }
+            return json_encode(array("status" => "2", "log_result" => "1", "token" => null, "regisNum" => null
             , "title" => null, "name" => null, "surname" => null
             , "adme" => null, "aero" => null, "ice" => null, "nano" => null));
         }
@@ -71,7 +89,7 @@ class ISEDatabase Extends Database
     {
         $sql = "SELECT * FROM coursetable WHERE id='" . $id . "'";
         $result = mysqli_query($this->_connection, $sql);
-        if ($result) {
+        if (mysqli_num_rows($result) == 1) {
             $row = mysqli_fetch_array($result);
             if ($row["ADME"] != 0 || $row["AERO"] != 0 || $row["ICE"] != 0 || $row["NANO"] != 0) {
                 return true;
@@ -122,7 +140,7 @@ class ISEDatabase Extends Database
                 $result = mysqli_query($this->_connection, $sql);
                 if (mysqli_num_rows($result) == 1) {
                     $row = mysqli_fetch_array($result);
-                    if ($this->updateLog($row["id"], $row["FirstName"] . " " . $row["SurName"] . " updated record.")) {
+                    if ($this->updateLog($row["id"], "user has updated record.")) {
                         //submit successful
                         //log successful
                         //code: 0, 0
@@ -135,7 +153,7 @@ class ISEDatabase Extends Database
                 }
             }
         } else {
-            if ($this->updateLog("", "wrong token can't find id")) {
+            if ($this->updateLog("", "wrong token received")) {
                 //cant find id with matching token and email
                 //log successful
                 //code: 1, 0
