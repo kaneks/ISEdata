@@ -50,21 +50,21 @@ class ISEDatabase Extends Database
                     if ($this->checkIfUpdated($row["id"])) {
                         //user has already submitted in before
                         if ($this->updateLog($row["id"], "login success, user has logged in before")) {
-                            return json_encode(array("status" => 0, "log_result" => 0, "token" => $token, "regisNum" => $row["id"]
+                            return json_encode(array("login_result" => 0, "log_result" => 0, "token" => $token, "regisNum" => $row["id"]
                             , "title" => $row["Title"], "name" => $row["FirstName"], "surname" => $row["SurName"]
                             , "adme" => $row["ADME"], "aero" => $row["AERO"], "ice" => $row["ICE"], "nano" => $row["NANO"]));
                         }
-                        return json_encode(array("status" => 0, "log_result" => 1, "token" => $token, "regisNum" => $row["id"]
+                        return json_encode(array("login_result" => 0, "log_result" => 1, "token" => $token, "regisNum" => $row["id"]
                         , "title" => $row["Title"], "name" => $row["FirstName"], "surname" => $row["SurName"]
                         , "adme" => $row["ADME"], "aero" => $row["AERO"], "ice" => $row["ICE"], "nano" => $row["NANO"]));
                     } else {
                         //user has never submitted
                         if ($this->updateLog($row["id"], "login success, first time")) {
-                            return json_encode(array("status" => 1, "log_result" => 0, "token" => $token, "regisNum" => $row["id"]
+                            return json_encode(array("login_result" => 1, "log_result" => 0, "token" => $token, "regisNum" => $row["id"]
                             , "title" => $row["Title"], "name" => $row["FirstName"], "surname" => $row["SurName"]
                             , "adme" => $row["ADME"], "aero" => $row["AERO"], "ice" => $row["ICE"], "nano" => $row["NANO"]));
                         }
-                        return json_encode(array("status" => 1, "log_result" => 1, "token" => $token, "regisNum" => $row["id"]
+                        return json_encode(array("login_result" => 1, "log_result" => 1, "token" => $token, "regisNum" => $row["id"]
                         , "title" => $row["Title"], "name" => $row["FirstName"], "surname" => $row["SurName"]
                         , "adme" => $row["ADME"], "aero" => $row["AERO"], "ice" => $row["ICE"], "nano" => $row["NANO"]));
                     }
@@ -73,11 +73,11 @@ class ISEDatabase Extends Database
         } else {
             //invalid email or password
             if($this->updateLog("-1", "user entered invalid email or password : " . $email . " " . $password)){
-                return json_encode(array("status" => 2, "log_result" => 0, "message" => "Invalid email or password.", "token" => null, "regisNum" => null
+                return json_encode(array("login_result" => 2, "log_result" => 0, "message" => "Invalid email or password.", "token" => null, "regisNum" => null
                 , "title" => null, "name" => null, "surname" => null
                 , "adme" => null, "aero" => null, "ice" => null, "nano" => null));
             }
-            return json_encode(array("status" => 2, "log_result" => 1, "message" => "Invalid email or password.", "token" => null, "regisNum" => null
+            return json_encode(array("login_result" => 2, "log_result" => 1, "message" => "Invalid email or password.", "token" => null, "regisNum" => null
             , "title" => null, "name" => null, "surname" => null
             , "adme" => null, "aero" => null, "ice" => null, "nano" => null));
         }
@@ -153,7 +153,7 @@ class ISEDatabase Extends Database
                 }
             }
         } else {
-            if ($this->updateLog("", "wrong token received")) {
+            if ($this->updateLog("-1", "wrong token received")) {
                 //cant find id with matching token and email
                 //log successful
                 //code: 1, 0
