@@ -32,28 +32,36 @@ class ISEDatabase Extends Database
     {   //set to lowercase
         $email = strtolower($email);
 
-        $resultID=$this->secureLogin($email,$password);
+        $result=$this->secureLogin($email,$password);
 
-        if ($resultID) {
+        if ($result) {
            // $row = mysqli_fetch_array($result);
             //$p = new OAuthProvider();
             //$token = $p->generateToken(32);
             $token = uniqid('',true);
             $sql1 = "UPDATE logintable SET token='" . $token . "' WHERE Email='" . $email . "'";
             $this->_connection->query($sql1);
-            if ($this->checkIfUpdated($resultID)) {
+
+            if ($this->checkIfUpdated($result["id"])) {
                 //user has already submitted in before
-                $this->updateLog($resultID, "login success");
-                return json_encode(array("status" => "1", "token" => $token, "error" => "0"));
+                $this->updateLog($result["id"], "login success");
+
+                return json_encode(array("status" => "0","log_result" => "0" ,"token" => $token, "regisNum"=> $result["regisNum"]
+                , "title"=> $result["title"], "name"=> $result["name"], "surname"=> $result["surname"]
+                , "adme"=> $result["adme"], "aero"=> $result["aero"], "ice"=> $result["ice"], "nano"=> $result["nano"]));
             } else {
                 //user has never submitted
-                $this->updateLog($resultID, "login success");
-                return json_encode(array("status" => "2", "token" => $token, "error" => "0"));
+                $this->updateLog($result["id"], "login success");
+                return json_encode(array("status" => "1","log_result" => "0" ,"token" => $token, "regisNum"=> $result["regisNum"]
+                , "title"=> $result["title"], "name"=> $result["name"], "surname"=> $result["surname"]
+                , "adme"=> $result["adme"], "aero"=> $result["aero"], "ice"=> $result["ice"], "nano"=> $result["nano"]));
             }
         } else {
             //invalid email or password
             $this->updateLog("", "invalid email or password");
-            return json_encode(array("status" => "3", "token" => null, "error" => "-1"));
+            return json_encode(array("status" => "2","log_result" => "-1" ,"token" => null, "regisNum"=> null
+            , "title"=> null, "name"=> null, "surname"=> null
+            , "adme"=> null, "aero"=> null, "ice"=> null, "nano"=> null));
         }
     }
 
@@ -74,15 +82,18 @@ class ISEDatabase Extends Database
 
     //part that handles the secure sql execution
     private function secureLogin($emailData,$passwordData){
-        $sql = "SELECT id FROM logintable WHERE Email=? AND Password=?";
+        $sql = "SELECT * FROM logintable WHERE Email=? AND Password=?";
         if($stmt = $this->_connection->prepare($sql)){
             $stmt->bind_param("ss",$emailData,$passwordData);
             $stmt->execute();
             $stmt->store_result();
-            $stmt->bind_result($returnVal);
+            //need to know ordering of database table
+            //will modify later
+            $stmt->bind_result($id,$email);
             $stmt->fetch();
             $stmt->close();
-            return $returnVal;
+            //part that will be modify later on once mickey arives
+            return array("id"=>$id,"email"=>$email);
         }
     }
 
@@ -102,8 +113,8 @@ class ISEDatabase Extends Database
     {
         $result=$this->secureConnect($token,$email);
         if($result){
-            $row = mysqli_fetch_array($result);
-            if(mysqli_num_rows($result) != 1) {
+            $row = $result;
+            if(count($result) != 1) {
                 if($this->updateLog("", "wrong token can't find id")){
                     //cant find id with matching token and email
                     //log successful
