@@ -32,13 +32,13 @@ class ISEDatabase Extends Database
     {   //set to lowercase
         $email = strtolower($email);
 
-        $result=$this->secureLogin($email,$password);
+        $result = $this->secureLogin($email, $password);
 
         if ($result) {
-           // $row = mysqli_fetch_array($result);
+            // $row = mysqli_fetch_array($result);
             //$p = new OAuthProvider();
             //$token = $p->generateToken(32);
-            $token = uniqid('',true);
+            $token = uniqid('', true);
             $sql1 = "UPDATE logintable SET token='" . $token . "' WHERE Email='" . $email . "'";
             $this->_connection->query($sql1);
 
@@ -46,22 +46,22 @@ class ISEDatabase Extends Database
                 //user has already submitted in before
                 $this->updateLog($result["id"], "login success");
 
-                return json_encode(array("status" => "0","log_result" => "0" ,"token" => $token, "regisNum"=> $result["regisNum"]
-                , "title"=> $result["title"], "name"=> $result["name"], "surname"=> $result["surname"]
-                , "adme"=> $result["adme"], "aero"=> $result["aero"], "ice"=> $result["ice"], "nano"=> $result["nano"]));
+                return json_encode(array("status" => "0", "log_result" => "0", "token" => $token, "regisNum" => $result["regisNum"]
+                , "title" => $result["title"], "name" => $result["name"], "surname" => $result["surname"]
+                , "adme" => $result["adme"], "aero" => $result["aero"], "ice" => $result["ice"], "nano" => $result["nano"]));
             } else {
                 //user has never submitted
                 $this->updateLog($result["id"], "login success");
-                return json_encode(array("status" => "1","log_result" => "0" ,"token" => $token, "regisNum"=> $result["regisNum"]
-                , "title"=> $result["title"], "name"=> $result["name"], "surname"=> $result["surname"]
-                , "adme"=> $result["adme"], "aero"=> $result["aero"], "ice"=> $result["ice"], "nano"=> $result["nano"]));
+                return json_encode(array("status" => "1", "log_result" => "0", "token" => $token, "regisNum" => $result["regisNum"]
+                , "title" => $result["title"], "name" => $result["name"], "surname" => $result["surname"]
+                , "adme" => $result["adme"], "aero" => $result["aero"], "ice" => $result["ice"], "nano" => $result["nano"]));
             }
         } else {
             //invalid email or password
             $this->updateLog("", "invalid email or password");
-            return json_encode(array("status" => "2","log_result" => "-1" ,"token" => null, "regisNum"=> null
-            , "title"=> null, "name"=> null, "surname"=> null
-            , "adme"=> null, "aero"=> null, "ice"=> null, "nano"=> null));
+            return json_encode(array("status" => "2", "log_result" => "-1", "token" => null, "regisNum" => null
+            , "title" => null, "name" => null, "surname" => null
+            , "adme" => null, "aero" => null, "ice" => null, "nano" => null));
         }
     }
 
@@ -71,7 +71,7 @@ class ISEDatabase Extends Database
     {
         $sql = "SELECT * FROM coursetable WHERE id='" . $id . "'";
         $result = mysqli_query($this->_connection, $sql);
-        if($result) {
+        if ($result) {
             $row = mysqli_fetch_array($result);
             if ($row["ADME"] != 0 || $row["AERO"] != 0 || $row["ICE"] != 0 || $row["NANO"] != 0) {
                 return true;
@@ -81,22 +81,22 @@ class ISEDatabase Extends Database
     }
 
     //part that handles the secure sql execution
-    private function secureLogin($emailData,$passwordData){
+    private function secureLogin($emailData, $passwordData)
+    {
         $sql = "SELECT * FROM logintable WHERE Email=? AND Password=?";
-        if($stmt = $this->_connection->prepare($sql)){
-            $stmt->bind_param("ss",$emailData,$passwordData);
+        if ($stmt = $this->_connection->prepare($sql)) {
+            $stmt->bind_param("ss", $emailData, $passwordData);
             $stmt->execute();
             $stmt->store_result();
             //need to know ordering of database table
             //will modify later
-            $stmt->bind_result($id,$email);
+            $stmt->bind_result($id, $email);
             $stmt->fetch();
             $stmt->close();
             //part that will be modify later on once mickey arives
-            return array("id"=>$id,"email"=>$email);
+            return array("id" => $id, "email" => $email);
         }
     }
-
 
 
     /*
@@ -111,44 +111,40 @@ class ISEDatabase Extends Database
 
     public function update($email, $token, $adme, $aero, $ice, $nano)
     {
-        $sql = "SELECT id FROM logintable WHERE token=" . $token ." AND Email='" . $email . "'";
+        $sql = "SELECT id FROM logintable WHERE token='" . $token . "' AND Email='" . $email . "'";
         $result = mysqli_query($this->_connection, $sql);
-        if($result){
+        if (mysqli_num_rows($result) == 1) {
             $row = mysqli_fetch_array($result);
-            if(count($row) != 1) {
-                if($this->updateLog("", "wrong token can't find id")){
-                    //cant find id with matching token and email
-                    //log successful
-                    //code: 1, 0
-                    return json_encode(array("result" => 1, "log_result" => 0));
-                }
-                //cant find id with matching token and email
-                //log unsuccessful
-                //code: 1, 1
-                return json_encode(array("result" => 1, "log_result" => 1));
-            } else {
-                $sql = "UPDATE coursetable SET ADME=" . $adme . ", AERO=" . $aero . ", ICE=" . $ice . ", NANO=" . $nano . " WHERE id=" . $row["id"];
-                $result = mysqli_query($this->_connection,$sql);
-                if ($result) {
-                    $sql = "SELECT * FROM coursetable WHERE id=" . $row["id"];
-                    $result = mysqli_query($this->_connection, $sql);
-                    if ($result) {
-                        $row = mysqli_fetch_array($result);
-                        if(count($row) == 1) {
-                            if ($this->updateLog($row["id"], $row["FirstName"] . " " . $row["SurName"] . " updated record.")) {
-                                //submit successful
-                                //log successful
-                                //code: 0, 0
-                                return json_encode(array("result" => 0, "log_result" => 0));
-                            }
-                        }
+            $sql = "UPDATE coursetable SET ADME=" . $adme . ", AERO=" . $aero . ", ICE=" . $ice . ", NANO=" . $nano . " WHERE id=" . $row["id"];
+            $result = mysqli_query($this->_connection, $sql);
+            if ($result) {
+                $sql = "SELECT * FROM coursetable WHERE id=" . $row["id"];
+                $result = mysqli_query($this->_connection, $sql);
+                if (mysqli_num_rows($result) == 1) {
+                    $row = mysqli_fetch_array($result);
+                    if ($this->updateLog($row["id"], $row["FirstName"] . " " . $row["SurName"] . " updated record.")) {
                         //submit successful
-                        //log unsuccessful
-                        //code: 0, 1
-                        return json_encode(array("result" => 0, "log_result" => 1));
+                        //log successful
+                        //code: 0, 0
+                        return json_encode(array("result" => 0, "log_result" => 0));
                     }
+                    //submit successful
+                    //log unsuccessful
+                    //code: 0, 1
+                    return json_encode(array("result" => 0, "log_result" => 1));
                 }
             }
+        } else {
+            if ($this->updateLog("", "wrong token can't find id")) {
+                //cant find id with matching token and email
+                //log successful
+                //code: 1, 0
+                return json_encode(array("result" => 1, "log_result" => 0));
+            }
+            //cant find id with matching token and email
+            //log unsuccessful
+            //code: 1, 1
+            return json_encode(array("result" => 1, "log_result" => 1));
         }
         //database error can't update
         //no log
@@ -158,11 +154,11 @@ class ISEDatabase Extends Database
 
     public function secureUpdate($email, $token, $adme, $aero, $ice, $nano)
     {
-        $result=$this->secureConnect($token,$email);
-        if($result){
+        $result = $this->secureConnect($token, $email);
+        if ($result) {
             $row = $result;
-            if(count($result) != 1) {
-                if($this->updateLog("", "wrong token can't find id")){
+            if (count($result) != 1) {
+                if ($this->updateLog("", "wrong token can't find id")) {
                     //cant find id with matching token and email
                     //log successful
                     //code: 1, 0
@@ -173,7 +169,7 @@ class ISEDatabase Extends Database
                 //code: 1, 1
                 return json_encode(array("result" => 1, "log_result" => 1));
             } else {
-                $result = $this->secureUpdate($adme,$aero,$ice,$nano,$row["id"]);
+                $result = $this->secureUpdate($adme, $aero, $ice, $nano, $row["id"]);
                 if ($result) {
                     $sql = "SELECT * FROM coursetable WHERE id=" . $row["id"];
                     $result = mysqli_query($this->_connection, $sql);
@@ -248,8 +244,8 @@ class ISEDatabase Extends Database
     private function updateLog($id, $action)
     {
         $date = date('Y/m/d H:i:s');
-        $sql = "INSERT INTO log (id, action, time) VALUES ('" . $id . "', '" . $action . "', '" . $date . "')";
-        $result = mysqli_query($this->_connection,$sql);
+        $sql = "INSERT INTO log (id, action, time) VALUES (" . $id . ", '" . $action . "', '" . $date . "')";
+        $result = mysqli_query($this->_connection, $sql);
         return $result;
     }
 
@@ -259,27 +255,27 @@ class ISEDatabase Extends Database
      * */
     public function getData($token)
     {
-            $sql1 = "SELECT id FROM logintable WHERE token=" . $token;
-            $result = mysqli_query($this->_connection,$sql1);
-            if($result){
-                $row = mysqli_fetch_array($result);
-                if(mysqli_num_rows($result) != 1) {
-                    if($this->updateLog($row["id"], "can't find token")){
-                        return json_encode(array("result" => 1, "log_result" => 0));
+        $sql1 = "SELECT id FROM logintable WHERE token=" . $token;
+        $result = mysqli_query($this->_connection, $sql1);
+        if ($result) {
+            $row = mysqli_fetch_array($result);
+            if (mysqli_num_rows($result) != 1) {
+                if ($this->updateLog($row["id"], "can't find token")) {
+                    return json_encode(array("result" => 1, "log_result" => 0));
+                }
+                return json_encode(array("result" => 1, "log_result" => 1));
+            } else {
+                $sql = "SELECT * FROM coursetable WHERE id=" . $row["id"];
+                $result = mysqli_query($this->_connection, $sql);
+                if ($result) {
+                    $row1 = mysqli_fetch_array($result);
+                    if ($this->updateLog($row["id"], "getData called for " . $row["FirstName"] . " " . $row["LastName"] . ".")) {
+                        return json_encode(array("result" => 0, "log_result" => 0, "id" => $row1["id"], "Title" => $row1["Title"], "FirstName" => $row1["FirstName"], "SurName" => $row1["SurName"], "adme" => $row1["ADME"], "aero" => $row1["AERO"], "ice" => $row1["ICE"], "nano" => $row1["NANO"]));
                     }
-                    return json_encode(array("result" => 1, "log_result" => 1));
-                } else {
-                    $sql = "SELECT * FROM coursetable WHERE id=" . $row["id"];
-                    $result = mysqli_query($this->_connection,$sql);
-                    if ($result) {
-                        $row1 = mysqli_fetch_array($result);
-                        if($this->updateLog($row["id"], "getData called for ".$row["FirstName"]." ".$row["LastName"].".")){
-                            return json_encode(array("result" => 0, "log_result" => 0, "id" => $row1["id"], "Title" => $row1["Title"], "FirstName" => $row1["FirstName"], "SurName" => $row1["SurName"], "adme" => $row1["ADME"], "aero" => $row1["AERO"], "ice" => $row1["ICE"], "nano" => $row1["NANO"]));
-                        }
-                        return json_encode(array("result" => 0, "log_result" => 1, "id" => $row1["id"], "Title" => $row1["Title"], "FirstName" => $row1["FirstName"], "SurName" => $row1["SurName"], "adme" => $row1["ADME"], "aero" => $row1["AERO"], "ice" => $row1["ICE"], "nano" => $row1["NANO"]));
-                    }
+                    return json_encode(array("result" => 0, "log_result" => 1, "id" => $row1["id"], "Title" => $row1["Title"], "FirstName" => $row1["FirstName"], "SurName" => $row1["SurName"], "adme" => $row1["ADME"], "aero" => $row1["AERO"], "ice" => $row1["ICE"], "nano" => $row1["NANO"]));
                 }
             }
+        }
         $this->updateLog("", "wrong token can't find id");
         return json_encode(array("result" => 2, "log_result" => 0));
     }
