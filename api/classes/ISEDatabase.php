@@ -136,10 +136,10 @@ class ISEDatabase Extends Database
     {
         //$sql = "SELECT id FROM login WHERE token='" . $token . "' AND Email='" . $email . "'";
         $result = $this->secureConnect($token,$email);
-        if (mysqli_num_rows($result) == 1) {
-            $row = mysqli_fetch_array($result);
-            $sql = "UPDATE course SET ADME=" . $adme . ", AERO=" . $aero . ", ICE=" . $ice . ", NANO=" . $nano . " WHERE id=" . $row["id"];
-            $result = mysqli_query($this->_connection, $sql);
+        if (count($result) == 1) {
+            $row = $result;
+            //$sql = "UPDATE course SET ADME=" . $adme . ", AERO=" . $aero . ", ICE=" . $ice . ", NANO=" . $nano . " WHERE id=" . $row["id"];
+            $result = $this->secureUpdate($adme,$aero,$ice,$nano,$row["id"]);
             if ($result) {
                 $sql = "SELECT * FROM course WHERE id=" . $row["id"];
                 $result = mysqli_query($this->_connection, $sql);
@@ -180,14 +180,15 @@ class ISEDatabase Extends Database
     private function secureConnect($tokenData,$emailData){
         $sql = "SELECT id FROM login WHERE token=? AND Email=?";
         $stmt = mysqli_prepare($this->_connection, $sql);
-        if($stmt){
-            $stmt->bind_param("ss",$tokenData,$emailData);
+        if($stmt) {
+            $stmt->bind_param("ss", $tokenData, $emailData);
             $stmt->execute();
             $stmt->store_result();
             $stmt->bind_result($returnVal);
             $stmt->fetch();
             $stmt->close();
-            return array("id"=>$returnVal);
+            return array("id" => $returnVal);
+        }
 
     }
 
@@ -195,13 +196,9 @@ class ISEDatabase Extends Database
         $sql = "UPDATE course SET ADME=?, AERO=?, ICE=?, NANO=? WHERE id=?";
         if($stmt = $this->_connection->prepare($sql)){
             $stmt->bind_param("ssssi",$adme,$aero,$ice,$nano,$id);
-            if($stmt->execute()){
-                return true;
-            }
-            else{
-                return false;
-            }
-
+            $isOk=$stmt->execute();
+            $stmt->close();
+            return $isOk;
         }
     }
 
