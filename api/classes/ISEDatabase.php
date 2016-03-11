@@ -12,7 +12,7 @@ class ISEDatabase Extends Database
     note also need to implement security check*/
     public function register($email, $password)
     {
-        $sql = "INSERT INTO logintable (Email, Password) VALUES ('" . $email . "', '" . $password . "')";
+        $sql = "INSERT INTO login (Email, Password) VALUES ('" . $email . "', '" . $password . "')";
         $result = $this->_connection->query($sql);
 
     }
@@ -31,7 +31,7 @@ class ISEDatabase Extends Database
     public function login($email, $password)
     {   //set to lowercase
         $email = strtolower($email);
-        $sql = "SELECT * FROM logintable WHERE Email='" . $email . "' AND Password='" . $password . "'";
+        $sql = "SELECT * FROM login WHERE Email='" . $email . "' AND Password='" . $password . "'";
         //$result = $this->secureLogin($email, $password);
         $result = mysqli_query($this->_connection, $sql);
         if (mysqli_num_rows($result) == 1) {
@@ -40,31 +40,31 @@ class ISEDatabase Extends Database
             //$p = new OAuthProvider();
             //$token = $p->generateToken(32);
             $token = uniqid('', true);
-            $sql = "UPDATE logintable SET token='" . $token . "' WHERE Email='" . $email . "'";
+            $sql = "UPDATE login SET token='" . $token . "' WHERE Email='" . $email . "'";
             $result = mysqli_query($this->_connection, $sql);
             if ($result) {
-                $sql = "SELECT * FROM coursetable WHERE id=" . $id;
+                $sql = "SELECT * FROM course WHERE id=" . $id;
                 $result = mysqli_query($this->_connection, $sql);
                 if (mysqli_num_rows($result) == 1) {
                     $row = mysqli_fetch_array($result);
                     if ($this->checkIfUpdated($row["id"])) {
                         //user has already submitted in before
                         if ($this->updateLog($row["id"], "login success, user has logged in before")) {
-                            return json_encode(array("status" => "0", "log_result" => "0", "token" => $token, "regisNum" => $row["id"]
+                            return json_encode(array("status" => 0, "log_result" => 0, "token" => $token, "regisNum" => $row["id"]
                             , "title" => $row["Title"], "name" => $row["FirstName"], "surname" => $row["SurName"]
                             , "adme" => $row["ADME"], "aero" => $row["AERO"], "ice" => $row["ICE"], "nano" => $row["NANO"]));
                         }
-                        return json_encode(array("status" => "0", "log_result" => "1", "token" => $token, "regisNum" => $row["id"]
+                        return json_encode(array("status" => 0, "log_result" => 1, "token" => $token, "regisNum" => $row["id"]
                         , "title" => $row["Title"], "name" => $row["FirstName"], "surname" => $row["SurName"]
                         , "adme" => $row["ADME"], "aero" => $row["AERO"], "ice" => $row["ICE"], "nano" => $row["NANO"]));
                     } else {
                         //user has never submitted
                         if ($this->updateLog($row["id"], "login success, first time")) {
-                            return json_encode(array("status" => "1", "log_result" => "0", "token" => $token, "regisNum" => $row["id"]
+                            return json_encode(array("status" => 1, "log_result" => 0, "token" => $token, "regisNum" => $row["id"]
                             , "title" => $row["Title"], "name" => $row["FirstName"], "surname" => $row["SurName"]
                             , "adme" => $row["ADME"], "aero" => $row["AERO"], "ice" => $row["ICE"], "nano" => $row["NANO"]));
                         }
-                        return json_encode(array("status" => "1", "log_result" => "1", "token" => $token, "regisNum" => $row["id"]
+                        return json_encode(array("status" => 1, "log_result" => 1, "token" => $token, "regisNum" => $row["id"]
                         , "title" => $row["Title"], "name" => $row["FirstName"], "surname" => $row["SurName"]
                         , "adme" => $row["ADME"], "aero" => $row["AERO"], "ice" => $row["ICE"], "nano" => $row["NANO"]));
                     }
@@ -72,12 +72,12 @@ class ISEDatabase Extends Database
             }
         } else {
             //invalid email or password
-            if($this->updateLog("", "user entered invalid email or password : " . $email . " " . $password)){
-                return json_encode(array("status" => "2", "log_result" => "0", "token" => null, "regisNum" => null
+            if($this->updateLog("-1", "user entered invalid email or password : " . $email . " " . $password)){
+                return json_encode(array("status" => 2, "log_result" => 0, "message" => "Invalid email or password.", "token" => null, "regisNum" => null
                 , "title" => null, "name" => null, "surname" => null
                 , "adme" => null, "aero" => null, "ice" => null, "nano" => null));
             }
-            return json_encode(array("status" => "2", "log_result" => "1", "token" => null, "regisNum" => null
+            return json_encode(array("status" => 2, "log_result" => 1, "message" => "Invalid email or password.", "token" => null, "regisNum" => null
             , "title" => null, "name" => null, "surname" => null
             , "adme" => null, "aero" => null, "ice" => null, "nano" => null));
         }
@@ -87,7 +87,7 @@ class ISEDatabase Extends Database
     //row is array that checks data if student has already selected submitted his choice of majar
     private function checkIfUpdated($id)
     {
-        $sql = "SELECT * FROM coursetable WHERE id='" . $id . "'";
+        $sql = "SELECT * FROM course WHERE id='" . $id . "'";
         $result = mysqli_query($this->_connection, $sql);
         if (mysqli_num_rows($result) == 1) {
             $row = mysqli_fetch_array($result);
@@ -101,7 +101,7 @@ class ISEDatabase Extends Database
     //part that handles the secure sql execution
     private function secureLogin($emailData, $passwordData)
     {
-        $sql = "SELECT * FROM logintable WHERE Email=? AND Password=?";
+        $sql = "SELECT * FROM login WHERE Email=? AND Password=?";
         if ($stmt = $this->_connection->prepare($sql)) {
             $stmt->bind_param("ss", $emailData, $passwordData);
             $stmt->execute();
@@ -129,14 +129,14 @@ class ISEDatabase Extends Database
 
     public function update($email, $token, $adme, $aero, $ice, $nano)
     {
-        $sql = "SELECT id FROM logintable WHERE token='" . $token . "' AND Email='" . $email . "'";
+        $sql = "SELECT id FROM login WHERE token='" . $token . "' AND Email='" . $email . "'";
         $result = mysqli_query($this->_connection, $sql);
         if (mysqli_num_rows($result) == 1) {
             $row = mysqli_fetch_array($result);
-            $sql = "UPDATE coursetable SET ADME=" . $adme . ", AERO=" . $aero . ", ICE=" . $ice . ", NANO=" . $nano . " WHERE id=" . $row["id"];
+            $sql = "UPDATE course SET ADME=" . $adme . ", AERO=" . $aero . ", ICE=" . $ice . ", NANO=" . $nano . " WHERE id=" . $row["id"];
             $result = mysqli_query($this->_connection, $sql);
             if ($result) {
-                $sql = "SELECT * FROM coursetable WHERE id=" . $row["id"];
+                $sql = "SELECT * FROM course WHERE id=" . $row["id"];
                 $result = mysqli_query($this->_connection, $sql);
                 if (mysqli_num_rows($result) == 1) {
                     $row = mysqli_fetch_array($result);
@@ -189,7 +189,7 @@ class ISEDatabase Extends Database
             } else {
                 $result = $this->secureUpdate($adme, $aero, $ice, $nano, $row["id"]);
                 if ($result) {
-                    $sql = "SELECT * FROM coursetable WHERE id=" . $row["id"];
+                    $sql = "SELECT * FROM course WHERE id=" . $row["id"];
                     $result = mysqli_query($this->_connection, $sql);
                     if ($result) {
                         $row = mysqli_fetch_array($result);
@@ -214,7 +214,7 @@ class ISEDatabase Extends Database
     }
     /*
     private function secureConnect($tokenData,$emailData){
-        $sql = "SELECT id FROM logintable WHERE token=? AND Email=?";
+        $sql = "SELECT id FROM login WHERE token=? AND Email=?";
         $stmt = mysqli_prepare($this->_connection, $sql);
         if($stmt){
             $stmt->bind_param("ss",$tokenData,$emailData);
@@ -232,7 +232,7 @@ class ISEDatabase Extends Database
     }
 
     private function secureUpdate($adme, $aero, $ice, $nano,$id){
-        $sql = "UPDATE coursetable SET ADME=?, AERO=?, ICE=?, NANO=? WHERE id=?";
+        $sql = "UPDATE course SET ADME=?, AERO=?, ICE=?, NANO=? WHERE id=?";
         if($stmt = $this->_connection->prepare($sql)){
             $stmt->bind_param("ssssi",$adme,$aero,$ice,$nano,$id);
             if($stmt->execute()){
@@ -249,7 +249,7 @@ class ISEDatabase Extends Database
     //checks the token if matches the generated token
     private function checkToken($token)
     {
-        $sql = "SELECT * FROM logintable WHERE token=" . $token;
+        $sql = "SELECT * FROM login WHERE token=" . $token;
         if ($this->_connection->query($sql) == TRUE) {
             //legit token
             return true;
@@ -273,7 +273,7 @@ class ISEDatabase Extends Database
      * */
     public function getData($token)
     {
-        $sql1 = "SELECT id FROM logintable WHERE token=" . $token;
+        $sql1 = "SELECT id FROM login WHERE token=" . $token;
         $result = mysqli_query($this->_connection, $sql1);
         if ($result) {
             $row = mysqli_fetch_array($result);
@@ -283,7 +283,7 @@ class ISEDatabase Extends Database
                 }
                 return json_encode(array("result" => 1, "log_result" => 1));
             } else {
-                $sql = "SELECT * FROM coursetable WHERE id=" . $row["id"];
+                $sql = "SELECT * FROM course WHERE id=" . $row["id"];
                 $result = mysqli_query($this->_connection, $sql);
                 if ($result) {
                     $row1 = mysqli_fetch_array($result);
