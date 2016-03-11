@@ -31,17 +31,17 @@ class ISEDatabase Extends Database
     public function login($email, $password)
     {   //set to lowercase
         $email = strtolower($email);
-        $sql = "SELECT * FROM logintable WHERE Email='" . $email . "' AND Password='" . $password . "'";
-        //$result = $this->secureLogin($email, $password);
-        $result = mysqli_query($this->_connection, $sql);
-        if (mysqli_num_rows($result) == 1) {
-            $row = mysqli_fetch_array($result);
+       // $sql = "SELECT * FROM logintable WHERE Email='" . $email . "' AND Password='" . $password . "'";
+        $result = $this->secureLogin($email, $password);
+        if (count($result) == 1) {
+            $row = $result;
             $id = $row["id"];
             //$p = new OAuthProvider();
             //$token = $p->generateToken(32);
             $token = uniqid('', true);
-            $sql = "UPDATE logintable SET token='" . $token . "' WHERE Email='" . $email . "'";
-            $result = mysqli_query($this->_connection, $sql);
+            //$sql = "UPDATE logintable SET token='" . $token . "' WHERE Email='" . $email . "'";
+          //  $result = mysqli_query($this->_connection, $sql);
+            $result = $this->secureLoginUpdate($token,$email);
             if ($result) {
                 $sql = "SELECT * FROM coursetable WHERE id=" . $id;
                 $result = mysqli_query($this->_connection, $sql);
@@ -101,18 +101,27 @@ class ISEDatabase Extends Database
     //part that handles the secure sql execution
     private function secureLogin($emailData, $passwordData)
     {
-        $sql = "SELECT * FROM logintable WHERE Email=? AND Password=?";
+        $sql = "SELECT id FROM logintable WHERE Email=? AND Password=?";
         if ($stmt = $this->_connection->prepare($sql)) {
             $stmt->bind_param("ss", $emailData, $passwordData);
             $stmt->execute();
             $stmt->store_result();
-            //need to know ordering of database table
-            //will modify later
-            $stmt->bind_result($id, $email);
+            $stmt->bind_result($id);
             $stmt->fetch();
             $stmt->close();
             //part that will be modify later on once mickey arives
-            return array("id" => $id, "email" => $email);
+            return array("id" => $id);
+        }
+    }
+
+    private function secureLoginUpdate($tokenData,$emailData){
+        $sql = "UPDATE logintable SET token=? WHERE Email=?";
+        if ($stmt = $this->_connection->prepare($sql)) {
+            $stmt->bind_param("ss", $tokenData, $emailData);
+            $isOk=$stmt->execute();
+
+            //part that will be modify later on once mickey arives
+            return $isOk;
         }
     }
 
