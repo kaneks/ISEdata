@@ -72,7 +72,7 @@ class ISEDatabase Extends Database
             }
         } else {
             //invalid email or password
-            if($this->updateLog("", "user entered invalid email or password :" . $email . " " . $password)){
+            if($this->updateLog("", "user entered invalid email or password : " . $email . " " . $password)){
                 return json_encode(array("status" => "2", "log_result" => "0", "token" => null, "regisNum" => null
                 , "title" => null, "name" => null, "surname" => null
                 , "adme" => null, "aero" => null, "ice" => null, "nano" => null));
