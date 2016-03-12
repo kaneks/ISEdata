@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Created by PhpStorm.
  * User: Kaneks
@@ -14,32 +13,34 @@ class ISEDatabase Extends Database
     {
         $sql = "INSERT INTO login (Email, Password) VALUES ('" . $email . "', '" . $password . "')";
         $result = $this->_connection->query($sql);
-
     }
-
     /*login( email, password) is for logging into webserver and generating token for user.
         function returns JSON{status, token, error}
         status: 0 = user already submitted in before
         status: 1 = user has never submitted
         status: 2 = invalid email or password
-
         token: null if error
-
         error: 0 if no error
                 -1 if invalid email or password
     */
     public function login($email, $password)
     {   //set to lowercase
+        echo ("stage1");
         $email = strtolower($email);
-        $result = $this->secureLogin($email, $password);
-        if (count($result) == 1) {
-            $row = $result;
+        //$sql = "SELECT * FROM login WHERE Email='" . $email . "' AND Password='" . $password . "'";
+        //$result = $this->secureLogin($email, $password);
+        //$result = mysqli_query($this->_connection, $sql);
+        $resultOfLogin = $this->secureLogin($email,$password);
+        if ($resultOfLogin["id"] != null) {
+            echo ("stage2");
+            $row = $resultOfLogin;
             $id = $row["id"];
+            echo ($id);
             //$p = new OAuthProvider();
             //$token = $p->generateToken(32);
             $token = uniqid('', true);
-
-            $result = $this->secureLoginUpdate($token,$email);
+            $sql = "UPDATE login SET token='" . $token . "' WHERE Email='" . $email . "'";
+            $result = mysqli_query($this->_connection, $sql);
             if ($result) {
                 $sql = "SELECT * FROM course WHERE id=" . $id;
                 $result = mysqli_query($this->_connection, $sql);
@@ -80,8 +81,6 @@ class ISEDatabase Extends Database
             , "adme" => null, "aero" => null, "ice" => null, "nano" => null));
         }
     }
-
-
     //row is array that checks data if student has already selected submitted his choice of majar
     private function checkIfUpdated($id)
     {
@@ -95,34 +94,23 @@ class ISEDatabase Extends Database
         }
         return false;
     }
-
     //part that handles the secure sql execution
     private function secureLogin($emailData, $passwordData)
     {
-        $sql = "SELECT id FROM logintable WHERE Email=? AND Password=?";
+        $sql = "SELECT id FROM login WHERE Email=? AND Password=?";
         if ($stmt = $this->_connection->prepare($sql)) {
             $stmt->bind_param("ss", $emailData, $passwordData);
             $stmt->execute();
             $stmt->store_result();
+            //need to know ordering of database table
+            //will modify later
             $stmt->bind_result($id);
             $stmt->fetch();
             $stmt->close();
-            return array("id" => $id);
-        }
-    }
-    //updating sent value.
-    private function secureLoginUpdate($tokenData,$emailData){
-        $sql = "UPDATE logintable SET token=? WHERE Email=?";
-        if ($stmt = $this->_connection->prepare($sql)) {
-            $stmt->bind_param("ss", $tokenData, $emailData);
-            $isOk=$stmt->execute();
-            $stmt->close();
             //part that will be modify later on once mickey arives
-            return $isOk;
+            return array("id" => $id,);
         }
     }
-
-
     /*
      *update( $token,$adme,$aero,$ice,$nano ) receives JSON from screen major selection page and update the student's choice on the database
      * Receives JSON{ADME, AERO, ICE, NANO}
@@ -132,15 +120,14 @@ class ISEDatabase Extends Database
      * error: 1 if database error can't update
      * error: 2 if wrong token can't update
      * */
-
     public function update($email, $token, $adme, $aero, $ice, $nano)
     {
-        //$sql = "SELECT id FROM login WHERE token='" . $token . "' AND Email='" . $email . "'";
-        $result = $this->secureConnect($token,$email);
-        if (count($result) == 1) {
-            $row = $result;
-            //$sql = "UPDATE course SET ADME=" . $adme . ", AERO=" . $aero . ", ICE=" . $ice . ", NANO=" . $nano . " WHERE id=" . $row["id"];
-            $result = $this->secureUpdate($adme,$aero,$ice,$nano,$row["id"]);
+        $sql = "SELECT id FROM login WHERE token='" . $token . "' AND Email='" . $email . "'";
+        $result = mysqli_query($this->_connection, $sql);
+        if (mysqli_num_rows($result) == 1) {
+            $row = mysqli_fetch_array($result);
+            $sql = "UPDATE course SET ADME=" . $adme . ", AERO=" . $aero . ", ICE=" . $ice . ", NANO=" . $nano . " WHERE id=" . $row["id"];
+            $result = mysqli_query($this->_connection, $sql);
             if ($result) {
                 $sql = "SELECT * FROM course WHERE id=" . $row["id"];
                 $result = mysqli_query($this->_connection, $sql);
@@ -176,33 +163,35 @@ class ISEDatabase Extends Database
         return json_encode(array("result" => 2, "log_result" => 0));
     }
 
-
-
     private function secureConnect($tokenData,$emailData){
         $sql = "SELECT id FROM login WHERE token=? AND Email=?";
         $stmt = mysqli_prepare($this->_connection, $sql);
-        if($stmt) {
-            $stmt->bind_param("ss", $tokenData, $emailData);
+        if($stmt){
+            $stmt->bind_param("ss",$tokenData,$emailData);
             $stmt->execute();
             $stmt->store_result();
             $stmt->bind_result($returnVal);
             $stmt->fetch();
             $stmt->close();
-            return array("id" => $returnVal);
+            if($returnVal != null){
+                TRUE;
+            }
+            #return array("id"=>$returnVal);
         }
-
+        return FALSE;
     }
-
     private function secureUpdate($adme, $aero, $ice, $nano,$id){
         $sql = "UPDATE course SET ADME=?, AERO=?, ICE=?, NANO=? WHERE id=?";
         if($stmt = $this->_connection->prepare($sql)){
             $stmt->bind_param("ssssi",$adme,$aero,$ice,$nano,$id);
-            $isOk=$stmt->execute();
-            $stmt->close();
-            return $isOk;
+            if($stmt->execute()){
+                return true;
+            }
+            else{
+                return false;
+            }
         }
     }
-
 
     //checks the token if matches the generated token
     private function checkToken($token)
@@ -215,8 +204,6 @@ class ISEDatabase Extends Database
         //non-legit token
         return false;
     }
-
-
     private function updateLog($id, $action)
     {
         $date = date('Y/m/d H:i:s');
@@ -224,7 +211,6 @@ class ISEDatabase Extends Database
         $result = mysqli_query($this->_connection, $sql);
         return $result;
     }
-
     /*
      *getData( TOKEN ) send in token and find the student with matching token
      * and return JSON{ result, name, surname, ice }
@@ -255,6 +241,4 @@ class ISEDatabase Extends Database
         $this->updateLog("", "wrong token can't find id");
         return json_encode(array("result" => 2, "log_result" => 0));
     }
-
-
 }
