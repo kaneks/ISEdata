@@ -25,23 +25,21 @@ class ISEDatabase Extends Database
     */
     public function login($email, $password)
     {   //set to lowercase
-        echo ("stage1");
         $email = strtolower($email);
         //$sql = "SELECT * FROM login WHERE Email='" . $email . "' AND Password='" . $password . "'";
         //$result = $this->secureLogin($email, $password);
         //$result = mysqli_query($this->_connection, $sql);
         $resultOfLogin = $this->secureLogin($email,$password);
         if ($resultOfLogin["id"] != null) {
-            echo ("stage2");
             $row = $resultOfLogin;
             $id = $row["id"];
-            echo ($id);
             //$p = new OAuthProvider();
             //$token = $p->generateToken(32);
             $token = uniqid('', true);
-            $sql = "UPDATE login SET token='" . $token . "' WHERE Email='" . $email . "'";
-            $result = mysqli_query($this->_connection, $sql);
-            if ($result) {
+            //$sql = "UPDATE login SET token='" . $token . "' WHERE Email='" . $email . "'";
+           // $result = mysqli_query($this->_connection, $sql);
+            $updateResult = $this->secureLoginUpdate($token,$email);
+            if ($updateResult) {
                 $sql = "SELECT * FROM course WHERE id=" . $id;
                 $result = mysqli_query($this->_connection, $sql);
                 if (mysqli_num_rows($result) == 1) {
@@ -109,6 +107,17 @@ class ISEDatabase Extends Database
             $stmt->close();
             //part that will be modify later on once mickey arives
             return array("id" => $id,);
+        }
+    }
+
+    private function secureLoginUpdate($tokenData,$emailData){
+        $sql = "UPDATE login SET token=? WHERE Email=?";
+        if ($stmt = $this->_connection->prepare($sql)) {
+            $stmt->bind_param("ss", $tokenData, $emailData);
+            $isOk=$stmt->execute();
+            $stmt->close();
+            //part that will be modify later on once mickey arives
+            return $isOk;
         }
     }
     /*
