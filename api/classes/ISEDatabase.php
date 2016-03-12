@@ -131,12 +131,15 @@ class ISEDatabase Extends Database
      * */
     public function update($email, $token, $adme, $aero, $ice, $nano)
     {
-        $sql = "SELECT id FROM login WHERE token='" . $token . "' AND Email='" . $email . "'";
-        $result = mysqli_query($this->_connection, $sql);
-        if (mysqli_num_rows($result) == 1) {
-            $row = mysqli_fetch_array($result);
-            $sql = "UPDATE course SET ADME=" . $adme . ", AERO=" . $aero . ", ICE=" . $ice . ", NANO=" . $nano . " WHERE id=" . $row["id"];
-            $result = mysqli_query($this->_connection, $sql);
+       // $sql = "SELECT id FROM login WHERE token='" . $token . "' AND Email='" . $email . "'";
+       // $result = mysqli_query($this->_connection, $sql);
+        $result = $this->secureConnect($token,$email);
+        if ($result["id"] != null) {
+            $row = $result;
+            //$sql = "UPDATE course SET ADME=" . $adme . ", AERO=" . $aero . ", ICE=" . $ice . ", NANO=" . $nano . " WHERE id=" . $row["id"];
+            //$result = mysqli_query($this->_connection, $sql);
+            $result = $this->secureUpdate($adme,$aero,$ice,$nano,$row["id"]);
+
             if ($result) {
                 $sql = "SELECT * FROM course WHERE id=" . $row["id"];
                 $result = mysqli_query($this->_connection, $sql);
@@ -174,31 +177,26 @@ class ISEDatabase Extends Database
 
     private function secureConnect($tokenData,$emailData){
         $sql = "SELECT id FROM login WHERE token=? AND Email=?";
-        $stmt = mysqli_prepare($this->_connection, $sql);
-        if($stmt){
-            $stmt->bind_param("ss",$tokenData,$emailData);
+        if ($stmt = $this->_connection->prepare($sql)) {
+            $stmt->bind_param("ss", $tokenData, $emailData);
             $stmt->execute();
             $stmt->store_result();
-            $stmt->bind_result($returnVal);
+            //need to know ordering of database table
+            //will modify later
+            $stmt->bind_result($id);
             $stmt->fetch();
             $stmt->close();
-            if($returnVal != null){
-                TRUE;
-            }
-            #return array("id"=>$returnVal);
+            //part that will be modify later on once mickey arives
+            return array("id" => $id,);
         }
-        return FALSE;
     }
     private function secureUpdate($adme, $aero, $ice, $nano,$id){
         $sql = "UPDATE course SET ADME=?, AERO=?, ICE=?, NANO=? WHERE id=?";
         if($stmt = $this->_connection->prepare($sql)){
             $stmt->bind_param("ssssi",$adme,$aero,$ice,$nano,$id);
-            if($stmt->execute()){
-                return true;
-            }
-            else{
-                return false;
-            }
+            $isOk=$stmt->execute();
+            $stmt->close();
+            return $isOk;
         }
     }
 
