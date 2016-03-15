@@ -257,16 +257,41 @@ class ISEDatabase Extends Database
         $sql ="UPDATE seat SET course='".$major."' WHERE id='".$id."'";
         $result = mysqli_query($this->_connection, $sql);
         if($result){
-            $this->updateLog($id, "seat updated");
-              return json_encode(array("result" => 0, "log_result" => 0));
+            if( $this->updateLog($id, "seat updated")) {
+                return json_encode(array("result" => 0, "log_result" => 0));
+            }
+            else{
+                return json_encode(array("result" => 0, "log_result" => 1));
+            }
         }
         else{
-            $this->updateLog($id, "database error or wrong id");
-            return json_encode(array("result" => 0, "log_result" => 1));
+            if( $this->updateLog($id, "database error or wrong id")) {
+                return json_encode(array("result" => 0, "log_result" => 0));
+            }
+            else{
+                return json_encode(array("result" => 0, "log_result" => 1));
+            }
         }
     }
     public function reverseSeat($id){
-        
+        $sql ="UPDATE seat SET course='' WHERE id='".$id."'";
+        $result = mysqli_query($this->_connection, $sql);
+        if($result){
+            if( $this->updateLog($id, "seat updated")) {
+                return json_encode(array("result" => 0, "log_result" => 0));
+            }
+            else{
+                return json_encode(array("result" => 0, "log_result" => 1));
+            }
+        }
+        else{
+            if( $this->updateLog($id, "database error or wrong id")) {
+                return json_encode(array("result" => 0, "log_result" => 0));
+            }
+            else{
+                return json_encode(array("result" => 0, "log_result" => 1));
+            }
+        }
     }
     public function getSeat(){
 
