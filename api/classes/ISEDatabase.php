@@ -40,7 +40,7 @@ class ISEDatabase Extends Database
             //$token = $p->generateToken(32);
             $token = uniqid('', true);
             //$sql = "UPDATE login SET token='" . $token . "' WHERE Email='" . $email . "'";
-           // $result = mysqli_query($this->_connection, $sql);
+            // $result = mysqli_query($this->_connection, $sql);
             $updateResult = $this->secureLoginUpdate($token,$email);
             if ($updateResult) {
                 $sql = "SELECT * FROM course WHERE id=" . $id;
@@ -134,8 +134,8 @@ class ISEDatabase Extends Database
      * */
     public function update($email, $token, $adme, $aero, $ice, $nano)
     {
-       // $sql = "SELECT id FROM login WHERE token='" . $token . "' AND Email='" . $email . "'";
-       // $result = mysqli_query($this->_connection, $sql);
+        // $sql = "SELECT id FROM login WHERE token='" . $token . "' AND Email='" . $email . "'";
+        // $result = mysqli_query($this->_connection, $sql);
 
         $result = $this->secureConnect($token,$email);
         if ($result["id"] != null) {
@@ -252,5 +252,23 @@ class ISEDatabase Extends Database
         }
         $this->updateLog("", "wrong token can't find id");
         return json_encode(array("result" => 2, "log_result" => 0));
+    }
+    public function updateSeat($id,$major){
+        $sql ="UPDATE seat SET course='".$major."' WHERE id='".$id."'";
+        $result = mysqli_query($this->_connection, $sql);
+        if($result){
+            $this->updateLog($id, "seat updated");
+              return json_encode(array("result" => 0, "log_result" => 0));
+        }
+        else{
+            $this->updateLog($id, "database error or wrong id");
+            return json_encode(array("result" => 0, "log_result" => 1));
+        }
+    }
+    public function reverseSeat($id){
+        
+    }
+    public function getSeat(){
+
     }
 }
