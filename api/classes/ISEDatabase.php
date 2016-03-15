@@ -33,6 +33,9 @@ class ISEDatabase Extends Database
         if ($resultOfLogin["id"] != null) {
             $row = $resultOfLogin;
             $id = $row["id"];
+            //for checking of logic
+
+
             //$p = new OAuthProvider();
             //$token = $p->generateToken(32);
             $token = uniqid('', true);
@@ -133,14 +136,16 @@ class ISEDatabase Extends Database
     {
        // $sql = "SELECT id FROM login WHERE token='" . $token . "' AND Email='" . $email . "'";
        // $result = mysqli_query($this->_connection, $sql);
+
         $result = $this->secureConnect($token,$email);
         if ($result["id"] != null) {
+
             $row = $result;
             //$sql = "UPDATE course SET ADME=" . $adme . ", AERO=" . $aero . ", ICE=" . $ice . ", NANO=" . $nano . " WHERE id=" . $row["id"];
             //$result = mysqli_query($this->_connection, $sql);
             $result = $this->secureUpdate($adme,$aero,$ice,$nano,$row["id"]);
-
             if ($result) {
+
                 $sql = "SELECT * FROM course WHERE id=" . $row["id"];
                 $result = mysqli_query($this->_connection, $sql);
                 if (mysqli_num_rows($result) == 1) {
