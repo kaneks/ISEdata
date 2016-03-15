@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Kaneks
@@ -7,6 +8,11 @@
  */
 class ISEDatabase Extends Database
 {
+    private $MAX_ADME = 60;
+    private $MAX_AERO = 60;
+    private $MAX_ICE = 60;
+    private $MAX_NANO = 60;
+
     /*register() inserts new email and password into database
     note also need to implement security check*/
     public function register($email, $password)
@@ -14,6 +20,7 @@ class ISEDatabase Extends Database
         $sql = "INSERT INTO login (Email, Password) VALUES ('" . $email . "', '" . $password . "')";
         $result = $this->_connection->query($sql);
     }
+
     /*login( email, password) is for logging into webserver and generating token for user.
         function returns JSON{status, token, error}
         status: 0 = user already submitted in before
@@ -29,7 +36,7 @@ class ISEDatabase Extends Database
         //$sql = "SELECT * FROM login WHERE Email='" . $email . "' AND Password='" . $password . "'";
         //$result = $this->secureLogin($email, $password);
         //$result = mysqli_query($this->_connection, $sql);
-        $resultOfLogin = $this->secureLogin($email,$password);
+        $resultOfLogin = $this->secureLogin($email, $password);
         if ($resultOfLogin["id"] != null) {
             $row = $resultOfLogin;
             $id = $row["id"];
@@ -41,7 +48,7 @@ class ISEDatabase Extends Database
             $token = uniqid('', true);
             //$sql = "UPDATE login SET token='" . $token . "' WHERE Email='" . $email . "'";
             // $result = mysqli_query($this->_connection, $sql);
-            $updateResult = $this->secureLoginUpdate($token,$email);
+            $updateResult = $this->secureLoginUpdate($token, $email);
             if ($updateResult) {
                 $sql = "SELECT * FROM course WHERE id=" . $id;
                 $result = mysqli_query($this->_connection, $sql);
@@ -72,7 +79,7 @@ class ISEDatabase Extends Database
             }
         } else {
             //invalid email or password
-            if($this->updateLog("-1", "user entered invalid email or password : " . $email . " " . $password)){
+            if ($this->updateLog("-1", "user entered invalid email or password : " . $email . " " . $password)) {
                 return json_encode(array("login_result" => 2, "log_result" => 0, "message" => "Invalid email or password.", "token" => null, "regisNum" => null
                 , "title" => null, "name" => null, "surname" => null
                 , "adme" => null, "aero" => null, "ice" => null, "nano" => null));
@@ -82,6 +89,7 @@ class ISEDatabase Extends Database
             , "adme" => null, "aero" => null, "ice" => null, "nano" => null));
         }
     }
+
     //row is array that checks data if student has already selected submitted his choice of majar
     private function checkIfUpdated($id)
     {
@@ -95,6 +103,7 @@ class ISEDatabase Extends Database
         }
         return false;
     }
+
     //part that handles the secure sql execution
     private function secureLogin($emailData, $passwordData)
     {
@@ -113,16 +122,18 @@ class ISEDatabase Extends Database
         }
     }
 
-    private function secureLoginUpdate($tokenData,$emailData){
+    private function secureLoginUpdate($tokenData, $emailData)
+    {
         $sql = "UPDATE login SET token=? WHERE Email=?";
         if ($stmt = $this->_connection->prepare($sql)) {
             $stmt->bind_param("ss", $tokenData, $emailData);
-            $isOk=$stmt->execute();
+            $isOk = $stmt->execute();
             $stmt->close();
             //part that will be modify later on once mickey arives
             return $isOk;
         }
     }
+
     /*
      *update( $token,$adme,$aero,$ice,$nano ) receives JSON from screen major selection page and update the student's choice on the database
      * Receives JSON{ADME, AERO, ICE, NANO}
@@ -137,13 +148,13 @@ class ISEDatabase Extends Database
         // $sql = "SELECT id FROM login WHERE token='" . $token . "' AND Email='" . $email . "'";
         // $result = mysqli_query($this->_connection, $sql);
 
-        $result = $this->secureConnect($token,$email);
+        $result = $this->secureConnect($token, $email);
         if ($result["id"] != null) {
 
             $row = $result;
             //$sql = "UPDATE course SET ADME=" . $adme . ", AERO=" . $aero . ", ICE=" . $ice . ", NANO=" . $nano . " WHERE id=" . $row["id"];
             //$result = mysqli_query($this->_connection, $sql);
-            $result = $this->secureUpdate($adme,$aero,$ice,$nano,$row["id"]);
+            $result = $this->secureUpdate($adme, $aero, $ice, $nano, $row["id"]);
             if ($result) {
 
                 $sql = "SELECT * FROM course WHERE id=" . $row["id"];
@@ -180,7 +191,8 @@ class ISEDatabase Extends Database
         return json_encode(array("result" => 2, "log_result" => 0));
     }
 
-    private function secureConnect($tokenData,$emailData){
+    private function secureConnect($tokenData, $emailData)
+    {
         $sql = "SELECT id FROM login WHERE token=? AND Email=?";
         if ($stmt = $this->_connection->prepare($sql)) {
             $stmt->bind_param("ss", $tokenData, $emailData);
@@ -195,11 +207,13 @@ class ISEDatabase Extends Database
             return array("id" => $id,);
         }
     }
-    private function secureUpdate($adme, $aero, $ice, $nano,$id){
+
+    private function secureUpdate($adme, $aero, $ice, $nano, $id)
+    {
         $sql = "UPDATE course SET ADME=?, AERO=?, ICE=?, NANO=? WHERE id=?";
-        if($stmt = $this->_connection->prepare($sql)){
-            $stmt->bind_param("ssssi",$adme,$aero,$ice,$nano,$id);
-            $isOk=$stmt->execute();
+        if ($stmt = $this->_connection->prepare($sql)) {
+            $stmt->bind_param("ssssi", $adme, $aero, $ice, $nano, $id);
+            $isOk = $stmt->execute();
             $stmt->close();
             return $isOk;
         }
@@ -216,6 +230,7 @@ class ISEDatabase Extends Database
         //non-legit token
         return false;
     }
+
     private function updateLog($id, $action)
     {
         $date = date('Y/m/d H:i:s');
@@ -223,6 +238,7 @@ class ISEDatabase Extends Database
         $result = mysqli_query($this->_connection, $sql);
         return $result;
     }
+
     /*
      *getData( TOKEN ) send in token and find the student with matching token
      * and return JSON{ result, name, surname, ice }
@@ -253,51 +269,57 @@ class ISEDatabase Extends Database
         $this->updateLog("", "wrong token can't find id");
         return json_encode(array("result" => 2, "log_result" => 0));
     }
-    public function updateSeat($id,$major){
-        $sql ="UPDATE seat SET course='".$major."' WHERE id='".$id."'";
-        $result = mysqli_query($this->_connection, $sql);
-        if($result){
-            if( $this->updateLog($id, "seat updated")) {
-                return json_encode(array("result" => 0, "log_result" => 0));
-            }
-            else{
-                return json_encode(array("result" => 0, "log_result" => 1));
-            }
-        }
-        else{
-            if( $this->updateLog($id, "database error or wrong id")) {
-                return json_encode(array("result" => 0, "log_result" => 0));
-            }
-            else{
-                return json_encode(array("result" => 0, "log_result" => 1));
-            }
-        }
-    }
-    public function reverseSeat($id){
-        $sql ="UPDATE seat SET course='' WHERE id='".$id."'";
-        $result = mysqli_query($this->_connection, $sql);
-        if($result){
-            if( $this->updateLog($id, "seat updated")) {
-                return json_encode(array("result" => 0, "log_result" => 0));
-            }
-            else{
-                return json_encode(array("result" => 0, "log_result" => 1));
-            }
-        }
-        else{
-            if( $this->updateLog($id, "database error or wrong id")) {
-                return json_encode(array("result" => 0, "log_result" => 0));
-            }
-            else{
-                return json_encode(array("result" => 0, "log_result" => 1));
-            }
-        }
-    }
-    public function getSeat(){
-        $sqlICE= "SELECT count(course) FROM seat Where course = ice";
-        $sqlADME ="SELECT count(course) FROM seat Where course = adme";
-        $sqlAERO = "SELECT count(course) FROM seat Where course = aero";
-        $sqlNANO = "SELECT count(course) FROM seat Where course = nano";
 
+    public function updateSeat($id, $major)
+    {
+        $sql = "UPDATE seat SET major='" . $major . "' WHERE id='" . $id . "'";
+        $result = mysqli_query($this->_connection, $sql);
+        if ($result) {
+            if ($this->updateLog($id, "seat updated")) {
+                return json_encode(array("result" => 0, "log_result" => 0));
+            } else {
+                return json_encode(array("result" => 0, "log_result" => 1));
+            }
+        } else {
+            if ($this->updateLog($id, "wrong id to update seat")) {
+                return json_encode(array("result" => 1, "log_result" => 0));
+            } else {
+                return json_encode(array("result" => 1, "log_result" => 1));
+            }
+        }
+        return json_encode(array("result" => 2, "log_result" => 0));
+    }
+
+    public function revokeSeat($id)
+    {
+        $sql = "UPDATE seat SET major='' WHERE id='" . $id . "'";
+        $result = mysqli_query($this->_connection, $sql);
+        if ($result) {
+            if ($this->updateLog($id, "seat updated")) {
+                return json_encode(array("result" => 0, "log_result" => 0));
+            } else {
+                return json_encode(array("result" => 0, "log_result" => 1));
+            }
+        } else {
+            if ($this->updateLog($id, "wrong id to revoke seat")) {
+                return json_encode(array("result" => 1, "log_result" => 0));
+            } else {
+                return json_encode(array("result" => 1, "log_result" => 1));
+            }
+        }
+        return json_encode(array("result" => 2, "log_result" => 0));
+    }
+
+    public function getSeat()
+    {
+        $sqlADME = "SELECT * FROM seat WHERE major='adme'";
+        $sqlAERO = "SELECT * FROM seat WHERE major='aero'";
+        $sqlICE = "SELECT * FROM seat WHERE major='ice'";
+        $sqlNANO = "SELECT * FROM seat WHERE major='nano'";
+        $adme = $this->MAX_ADME - mysqli_num_rows(mysqli_query($this->_connection, $sqlADME));
+        $aero = $this->MAX_AERO - mysqli_num_rows(mysqli_query($this->_connection, $sqlAERO));
+        $ice = $this->MAX_ICE - mysqli_num_rows(mysqli_query($this->_connection, $sqlICE));
+        $nano = $this->MAX_NANO - mysqli_num_rows(mysqli_query($this->_connection, $sqlNANO));
+        return json_encode(array("result" => 0, "adme" => $adme, "aero" => $aero, "ice" => $ice, "nano" => $nano));
     }
 }
