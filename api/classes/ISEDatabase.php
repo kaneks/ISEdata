@@ -294,6 +294,10 @@ class ISEDatabase Extends Database
         }
     }
     public function getSeat(){
+        $sqlICE= "SELECT count(course) FROM seat Where course = ice";
+        $sqlADME ="SELECT count(course) FROM seat Where course = adme";
+        $sqlAERO = "SELECT count(course) FROM seat Where course = aero";
+        $sqlNANO = "SELECT count(course) FROM seat Where course = nano";
 
     }
 }
