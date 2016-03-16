@@ -5,8 +5,8 @@
  * Date: 08/03/2016
  * Time: 23:57
  */
-require_once("/classes/Database.php");
-require_once("/classes/ISEDatabase.php");
+require_once("classes/Database.php");
+require_once("classes/ISEDatabase.php");
 
 echo "You have entered ".$_POST["email"]." as your email.";
 echo "You have entered ".$_POST["password"]." as your password.";
