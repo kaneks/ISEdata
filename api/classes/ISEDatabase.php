@@ -8,8 +8,8 @@
  */
 class ISEDatabase Extends Database
 {
-    private $MAX_ADME = 60;
-    private $MAX_AERO = 60;
+    private $MAX_ADME = 50;
+    private $MAX_AERO = 30;
     private $MAX_ICE = 60;
     private $MAX_NANO = 60;
 
@@ -311,7 +311,6 @@ class ISEDatabase Extends Database
                 return json_encode(array("result" => 1, "log_result" => 1));
             }
         }
-        return json_encode(array("result" => 2, "log_result" => 0));
     }
 
     public function revokeSeat($id)
@@ -319,7 +318,7 @@ class ISEDatabase Extends Database
         $sql = "UPDATE seat SET major='' WHERE id='" . $id . "'";
         $result = mysqli_query($this->_connection, $sql);
         if ($result) {
-            if ($this->updateLog($id, "seat updated")) {
+            if ($this->updateLog($id, "seat revoked")) {
                 return json_encode(array("result" => 0, "log_result" => 0));
             } else {
                 return json_encode(array("result" => 0, "log_result" => 1));
@@ -331,7 +330,7 @@ class ISEDatabase Extends Database
                 return json_encode(array("result" => 1, "log_result" => 1));
             }
         }
-        return json_encode(array("result" => 2, "log_result" => 0));
+
     }
 
     public function getSeat()
@@ -340,10 +339,29 @@ class ISEDatabase Extends Database
         $sqlAERO = "SELECT * FROM seat WHERE major='aero'";
         $sqlICE = "SELECT * FROM seat WHERE major='ice'";
         $sqlNANO = "SELECT * FROM seat WHERE major='nano'";
-        $adme = $this->MAX_ADME - mysqli_num_rows(mysqli_query($this->_connection, $sqlADME));
-        $aero = $this->MAX_AERO - mysqli_num_rows(mysqli_query($this->_connection, $sqlAERO));
-        $ice = $this->MAX_ICE - mysqli_num_rows(mysqli_query($this->_connection, $sqlICE));
-        $nano = $this->MAX_NANO - mysqli_num_rows(mysqli_query($this->_connection, $sqlNANO));
-        return json_encode(array("result" => 0, "adme" => $adme, "aero" => $aero, "ice" => $ice, "nano" => $nano));
+
+        $admeResult = mysqli_query($this->_connection, $sqlADME);
+        $aeroResult = mysqli_query($this->_connection, $sqlAERO);
+        $iceResult = mysqli_query($this->_connection, $sqlICE);
+        $nanoResult = mysqli_query($this->_connection, $sqlNANO);
+
+        if(!is_bool($admeResult) && !is_bool($aeroResult) && !is_bool($iceResult) && !is_bool($nanoResult)){
+            $adme = $this->MAX_ADME - mysqli_num_rows($admeResult);
+            $aero = $this->MAX_AERO - mysqli_num_rows($aeroResult);
+            $ice = $this->MAX_ICE - mysqli_num_rows($iceResult);
+            $nano = $this->MAX_NANO - mysqli_num_rows($nanoResult);
+            if($this->updateLog(" ", "successfully get remaining seat")){
+                return json_encode(array("result" => 0,"log_result"=>0, "admeNum" => $adme, "aeroNum" => $aero, "iceNum" => $ice, "nanoNum" => $nano));
+            }
+            return json_encode(array("result" => 0,"log_result"=>1, "admeNum" => $adme, "aeroNum" => $aero, "iceNum" => $ice, "nanoNum" => $nano));
+        }else {
+            if($this->updateLog(" ", "fail to get remaining seat")){
+                return json_encode(array("result" => 1,"log_result"=>0, "admeNum" => null, "aeroNum" => null, "iceNum" => null, "nanoNum" => null));
+            }
+
+            return json_encode(array("result" => 1,"log_result"=>1, "admeNum" => null, "aeroNum" => null, "iceNum" => null, "nanoNum" => null));
+        }
     }
+
+
 }
