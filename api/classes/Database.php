@@ -11,9 +11,12 @@ class Database
     protected $_connection;
     private static $_instance; //The single instance
     private $_host = "localhost";
-    private $_username = "ise";
-    private $_password = "qrAtqjWmLPB9EAPQ";
-    private $_database = "ise_admission";
+    private $_username = "root";
+    private $_password = "root";
+    private $_database = "testdatabase";
+    #private $_username = "ise";
+    #private $_password = "qrAtqjWmLPB9EAPQ";
+    #private $_database = "ise_admission";
 
     /*
     Get an instance of the Database

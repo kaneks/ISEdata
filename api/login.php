@@ -6,12 +6,13 @@
  * Time: 23:23
  */
 
-require_once("/classes/Database.php");
-require_once("/classes/ISEDatabase.php");
+require_once("curl.php");
 
-#echo "You have entered ".$_POST["email"]." as your email.";
-#echo "You have entered ".$_POST["password"]." as your password.";
-$db = new ISEDatabase();
-echo $db->login($_POST["email"], $_POST["password"]);
+$params = array(
+    "email" => $_POST["email"],
+    "password" => $_POST["password"],
+);
+
+echo httpPost("http://localhost:85/ISEdata/api/curlLogin.php",$params);
 
 ?>
