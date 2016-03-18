@@ -227,34 +227,71 @@ class ISEDatabase Extends Database
     }
 
     /*
-     *getData( TOKEN ) send in token and find the student with matching token
-     * and return JSON{ result, name, surname, ice }
+     *getData( Rank ) send in rank and find the student with matching token
+     * and return JSON{ result,title, regisNum , name, surname, adme, aero, ice, nano }
      * */
-    public function getData($token)
+    public function getData($rank)
     {
-        $sql1 = "SELECT id FROM login WHERE token=" . $token;
-        $result = mysqli_query($this->_connection, $sql1);
-        if ($result) {
+         $sql = "SELECT * FROM dataTable WHERE rank='".$rank."'";
+        $result = mysqli_query($this->_connection, $sql);
+        if($result){
             $row = mysqli_fetch_array($result);
-            if (mysqli_num_rows($result) != 1) {
-                if ($this->updateLog($row["id"], "can't find token")) {
-                    return json_encode(array("result" => 1, "log_result" => 0));
-                }
-                return json_encode(array("result" => 1, "log_result" => 1));
-            } else {
-                $sql = "SELECT * FROM major WHERE id=" . $row["id"];
-                $result = mysqli_query($this->_connection, $sql);
-                if ($result) {
-                    $row1 = mysqli_fetch_array($result);
-                    if ($this->updateLog($row["id"], "getData called for " . $row["FirstName"] . " " . $row["LastName"] . ".")) {
-                        return json_encode(array("result" => 0, "log_result" => 0, "id" => $row1["id"], "Title" => $row1["Title"], "FirstName" => $row1["FirstName"], "SurName" => $row1["SurName"], "adme" => $row1["ADME"], "aero" => $row1["AERO"], "ice" => $row1["ICE"], "nano" => $row1["NANO"]));
-                    }
-                    return json_encode(array("result" => 0, "log_result" => 1, "id" => $row1["id"], "Title" => $row1["Title"], "FirstName" => $row1["FirstName"], "SurName" => $row1["SurName"], "adme" => $row1["ADME"], "aero" => $row1["AERO"], "ice" => $row1["ICE"], "nano" => $row1["NANO"]));
-                }
+            if($this->updateLog($rank, "get major data")){
+                return json_encode(array("result" => 0, "log_result" => 0, "regisNum" => $row["id"]
+                , "title" => $row["Title"], "name" => $row["FirstName"], "surname" => $row["SurName"]
+                , "adme" => $row["ADME"], "aero" => $row["AERO"], "ice" => $row["ICE"], "nano" => $row["NANO"]));
             }
+            return json_encode(array("result" => 0, "log_result" => 1, "regisNum" => $row["id"]
+            , "title" => $row["Title"], "name" => $row["FirstName"], "surname" => $row["SurName"]
+            , "adme" => $row["ADME"], "aero" => $row["AERO"], "ice" => $row["ICE"], "nano" => $row["NANO"]));
         }
-        $this->updateLog("", "wrong token can't find id");
-        return json_encode(array("result" => 2, "log_result" => 0));
+        else{
+            if($this->updateLog($rank, "get major data")){
+                return json_encode(array("result" => 1, "log_result" => 0, "regisNum" => null
+                , "title" => null, "name" => null, "surname" => null
+                , "adme" => null, "aero" => null, "ice" => null, "nano" => null));
+            }
+            return json_encode(array("result" => 1, "log_result" => 1, "regisNum" => null
+            , "title" => null, "name" => null, "surname" => null
+            , "adme" => null, "aero" => null, "ice" => null, "nano" => null));
+        }
+
+    }
+    //return JSON{result , log_result}
+    public function setCurrent($rank){
+        $sql = "UPDATE current set currentSeat='".$rank."'";
+        $result = mysqli_query($this->_connection, $sql);
+        if($result){
+            if($this->updateLog($rank, "current rank updated")){
+                return json_encode(array("result" => 0, "log_result" => 0));
+            }
+            return json_encode(array("result" => 0, "log_result" => 1));
+        }
+        else{
+            if($this->updateLog($rank, "fail to update rank")){
+                return json_encode(array("result" => 1, "log_result" => 0));
+            }
+            return json_encode(array("result" => 1, "log_result" => 1));
+        }
+    }
+    //return JSON{result,log_result,rank}
+    public function getCurrent(){
+        $sql = "SELECT currentSeat FROM current";
+        $result = mysqli_query($this->_connection, $sql);
+        if($result){
+            $row = mysqli_fetch_array($result);
+            if($this->updateLog(" ", "successfully get current_rank")){
+                return json_encode(array("result" => 0, "log_result" => 0,"rank" => $row["currentSeat"]));
+            }
+            return json_encode(array("result" => 0, "log_result" => 1,"rank" => $row["currentSeat"]));
+        }
+        else{
+            if($this->updateLog(" ", "fail to get current_rank")){
+                return json_encode(array("result" => 1, "log_result" => 0));
+            }
+            return json_encode(array("result" => 1, "log_result" => 1));
+        }
+
     }
 
     public function updateSeat($id, $major)
