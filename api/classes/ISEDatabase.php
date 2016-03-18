@@ -287,9 +287,9 @@ class ISEDatabase Extends Database
         }
         else{
             if($this->updateLog(" ", "fail to get current_rank")){
-                return json_encode(array("result" => 1, "log_result" => 0));
+                return json_encode(array("result" => 1, "log_result" => 0, "rank" => null));
             }
-            return json_encode(array("result" => 1, "log_result" => 1));
+            return json_encode(array("result" => 1, "log_result" => 1, "rank"=> null));
         }
 
     }
