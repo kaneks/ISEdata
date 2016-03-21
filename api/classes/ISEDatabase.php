@@ -309,82 +309,24 @@ class ISEDatabase Extends Database
         return $this->getStudentById($id);
     }
 
-    //return JSON{result , log_result}
-
-    public function setCurrent($rank)
+    public function getNextStudent($id)
     {
-        $sql = "UPDATE status SET status='" . $rank . "'";
+        $sql = "SELECT rank FROM admission WHERE id=".$id;
         $result = mysqli_query($this->_connection, $sql);
-        if ($result) {
-            if ($this->updateLog($rank, "current rank updated")) {
-                return json_encode(array("result" => 0, "log_result" => 0));
-            }
-            return json_encode(array("result" => 0, "log_result" => 1));
-        } else {
-            if ($this->updateLog($rank, "fail to update rank")) {
-                return json_encode(array("result" => 1, "log_result" => 0));
-            }
-            return json_encode(array("result" => 1, "log_result" => 1));
-        }
+        $row = mysqli_fetch_row($result);
+        $rank = $row["rank"];
+        $rank++;
+        return $this->getStudentByRank($rank);
     }
 
-    //return JSON{result,log_result,rank}
-
-    public function getCurrent()
+    public function getPreviousStudent($id)
     {
-        $sql = "SELECT currentSeat FROM current";
+        $sql = "SELECT rank FROM admission WHERE id=".$id;
         $result = mysqli_query($this->_connection, $sql);
-        if ($result) {
-            $row = mysqli_fetch_array($result);
-            if ($this->updateLog(" ", "successfully get current_rank")) {
-                return json_encode(array("result" => 0, "log_result" => 0, "rank" => $row["currentSeat"]));
-            }
-            return json_encode(array("result" => 0, "log_result" => 1, "rank" => $row["currentSeat"]));
-        } else {
-            if ($this->updateLog(" ", "fail to get current_rank")) {
-                return json_encode(array("result" => 1, "log_result" => 0, "rank" => null));
-            }
-            return json_encode(array("result" => 1, "log_result" => 1, "rank" => null));
-        }
-    }
-
-    public function updateSeat($id, $major)
-    {
-        $sql = "UPDATE seat SET major='" . $major . "' WHERE id='" . $id . "'";
-        $result = mysqli_query($this->_connection, $sql);
-        if ($result) {
-            if ($this->updateLog($id, "seat updated")) {
-                return json_encode(array("result" => 0, "log_result" => 0));
-            } else {
-                return json_encode(array("result" => 0, "log_result" => 1));
-            }
-        } else {
-            if ($this->updateLog($id, "wrong id to update seat")) {
-                return json_encode(array("result" => 1, "log_result" => 0));
-            } else {
-                return json_encode(array("result" => 1, "log_result" => 1));
-            }
-        }
-    }
-
-    public function revokeSeat($id)
-    {
-        $sql = "UPDATE seat SET major='' WHERE id='" . $id . "'";
-        $result = mysqli_query($this->_connection, $sql);
-        if ($result) {
-            if ($this->updateLog($id, "seat revoked")) {
-                return json_encode(array("result" => 0, "log_result" => 0));
-            } else {
-                return json_encode(array("result" => 0, "log_result" => 1));
-            }
-        } else {
-            if ($this->updateLog($id, "wrong id to revoke seat")) {
-                return json_encode(array("result" => 1, "log_result" => 0));
-            } else {
-                return json_encode(array("result" => 1, "log_result" => 1));
-            }
-        }
-
+        $row = mysqli_fetch_row($result);
+        $rank = $row["rank"];
+        $rank--;
+        return $this->getStudentByRank($rank);
     }
 
     public function getSeat()
@@ -404,15 +346,14 @@ class ISEDatabase Extends Database
             $aero = $this->MAX_AERO - mysqli_num_rows($aeroResult);
             $ice = $this->MAX_ICE - mysqli_num_rows($iceResult);
             $nano = $this->MAX_NANO - mysqli_num_rows($nanoResult);
-            if ($this->updateLog(" ", "successfully get remaining seat")) {
+            if ($this->updateLog(0, "Got remaining seat")) {
                 return json_encode(array("result" => 0, "log_result" => 0, "admeNum" => $adme, "aeroNum" => $aero, "iceNum" => $ice, "nanoNum" => $nano));
             }
             return json_encode(array("result" => 0, "log_result" => 1, "admeNum" => $adme, "aeroNum" => $aero, "iceNum" => $ice, "nanoNum" => $nano));
         } else {
-            if ($this->updateLog(" ", "fail to get remaining seat")) {
+            if ($this->updateLog(0, "Failed to get remaining seat.")) {
                 return json_encode(array("result" => 1, "log_result" => 0, "admeNum" => null, "aeroNum" => null, "iceNum" => null, "nanoNum" => null));
             }
-
             return json_encode(array("result" => 1, "log_result" => 1, "admeNum" => null, "aeroNum" => null, "iceNum" => null, "nanoNum" => null));
         }
     }
