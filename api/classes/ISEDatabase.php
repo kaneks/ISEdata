@@ -220,6 +220,7 @@ class ISEDatabase Extends Database
 
     private function updateLog($id, $action)
     {
+        date_default_timezone_set("Asia/Bangkok");
         $date = date('Y/m/d H:i:s');
         $sql = "INSERT INTO log (id, action, time) VALUES (" . $id . ", '" . $action . "', '" . $date . "')";
         $result = mysqli_query($this->_connection, $sql);
