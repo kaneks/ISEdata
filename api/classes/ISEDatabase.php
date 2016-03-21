@@ -232,7 +232,19 @@ class ISEDatabase Extends Database
      * */
     public function getData($rank)
     {
-         $sql = "SELECT * FROM dataTable WHERE rank='".$rank."'";
+        $name=$this->getName($rank);
+        //can't find rank
+        if($name == false){
+            if($this->updateLog($rank, "get major data")){
+                return json_encode(array("result" => 2, "log_result" => 0, "regisNum" => null
+                , "title" => null, "name" => null, "surname" => null
+                , "adme" => null, "aero" => null, "ice" => null, "nano" => null));
+            }
+            return json_encode(array("result" => 2, "log_result" => 1, "regisNum" => null
+            , "title" => null, "name" => null, "surname" => null
+            , "adme" => null, "aero" => null, "ice" => null, "nano" => null));
+        }
+         $sql = "SELECT * FROM dataTable WHERE name='".$name."'";
         $result = mysqli_query($this->_connection, $sql);
         if($result){
             $row = mysqli_fetch_array($result);
@@ -256,6 +268,15 @@ class ISEDatabase Extends Database
             , "adme" => null, "aero" => null, "ice" => null, "nano" => null));
         }
 
+    }
+    public function getName($rank){
+        $sql = "SELECT name FROM rankTable WHERE rank ='".$rank."'";
+        $result = mysqli_query($this->_connection, $sql);
+        if($result){
+            $row = mysqli_fetch_array($result);
+                return $row["name"];
+        }
+        return false;
     }
     //return JSON{result , log_result}
     public function setCurrent($rank){
@@ -345,7 +366,7 @@ class ISEDatabase Extends Database
         $iceResult = mysqli_query($this->_connection, $sqlICE);
         $nanoResult = mysqli_query($this->_connection, $sqlNANO);
 
-        if(!is_bool($admeResult) && !is_bool($aeroResult) && !is_bool($iceResult) && !is_bool($nanoResult)){
+        if($admeResult && $aeroResult && $iceResult && $nanoResult){
             $adme = $this->MAX_ADME - mysqli_num_rows($admeResult);
             $aero = $this->MAX_AERO - mysqli_num_rows($aeroResult);
             $ice = $this->MAX_ICE - mysqli_num_rows($iceResult);
