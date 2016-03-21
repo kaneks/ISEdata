@@ -13,14 +13,6 @@ class ISEDatabase Extends Database
     private $MAX_ICE = 60;
     private $MAX_NANO = 60;
 
-    /*register() inserts new email and password into database
-    note also need to implement security check*/
-    public function register($email, $password)
-    {
-        $sql = "INSERT INTO login (Email, Password) VALUES ('" . $email . "', '" . $password . "')";
-        $result = $this->_connection->query($sql);
-    }
-
     /*login( email, password) is for logging into webserver and generating token for user.
         function returns JSON{status, token, error}
         status: 0 = user already submitted in before
@@ -30,6 +22,7 @@ class ISEDatabase Extends Database
         error: 0 if no error
                 -1 if invalid email or password
     */
+
     public function login($email, $password)
     {   //set to lowercase
         $email = strtolower($email);
@@ -91,6 +84,7 @@ class ISEDatabase Extends Database
     }
 
     //row is array that checks data if student has already selected submitted his choice of majar
+
     private function checkIfUpdated($id)
     {
         $sql = "SELECT * FROM major WHERE id='" . $id . "'";
@@ -105,6 +99,7 @@ class ISEDatabase Extends Database
     }
 
     //part that handles the secure sql execution
+
     private function secureLogin($emailData, $passwordData)
     {
         $sql = "SELECT id FROM login WHERE Email=? AND Password=?";
@@ -143,6 +138,7 @@ class ISEDatabase Extends Database
      * error: 1 if database error can't update
      * error: 2 if wrong token can't update
      * */
+
     public function update($email, $token, $adme, $aero, $ice, $nano)
     {
         // $sql = "SELECT id FROM login WHERE token='" . $token . "' AND Email='" . $email . "'";
@@ -270,7 +266,8 @@ class ISEDatabase Extends Database
         }
 
     }
-    public function getName($rank){
+
+    private function getName($rank){
         $sql = "SELECT name FROM rankTable WHERE rank ='".$rank."'";
         $result = mysqli_query($this->_connection, $sql);
         if($result){
